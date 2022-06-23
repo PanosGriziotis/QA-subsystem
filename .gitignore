@@ -1,3 +1,18 @@
 # full haystack folder
 
 haystack_full/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# VSCode
+.vscode
+
+# models
+models/

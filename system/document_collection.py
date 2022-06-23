@@ -41,24 +41,6 @@ def download_texts(main_url, data_dir):
                 with open (f'doc{i}.txt', 'w', encoding='utf8') as doc_file:
                     doc_file.write(passage)
 
-        """elif content_type == 'application/pdf':
-            pdf= io.BytesIO (response.content)
-            reader = PdfFileReader(pdf)
-            contents = reader.getPage(0).extractText().split('\n')
-            passage = ' '.join (contents) 
-            pdf_file.write(passage)"""       
-"""  
-def clean_docs (data_dir):
-    preprocessor = PreProcessor(
-        clean_empty_lines=True,
-        clean_whitespace=True,
-        clean_header_footer=False,
-        split_by="word",
-        split_length=100,
-        split_respect_sentence_boundary=True,
-    )
-    for txt_file in data_dir:
-        preprocessor.process(txt_file)"""  
         
 download_texts(main_url,'./data/plain_data')
 
