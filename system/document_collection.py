@@ -1,13 +1,9 @@
-#from cgitb import htm
-#from haystack.nodes.preprocessor import PreProcessor
-from haystack.utils.preprocessing import convert_files_to_dicts
 import requests
 from bs4 import BeautifulSoup as bs
 import io
 #from  PyPDF2  import PdfFileReader
 import os
-main_url = "https://eody.gov.gr/neos-koronaios-covid-19/"
-
+import sys
 
 def download_texts(main_url, data_dir):
     """input: main url path
@@ -41,9 +37,10 @@ def download_texts(main_url, data_dir):
                 with open (f'doc{i}.txt', 'w', encoding='utf8') as doc_file:
                     doc_file.write(passage)
 
-        
-download_texts(main_url,'./data/plain_data')
 
-print ('done')
+if __name__ == '__main__': 
+    URL = "https://eody.gov.gr/neos-koronaios-covid-19/"
+    download_texts(URL,sys.argv[1])
+    
 
 

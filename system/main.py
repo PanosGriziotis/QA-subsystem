@@ -2,37 +2,37 @@
 import os
 from model import QuestionAnsweringSystem
 
-#if name == _main_:
-DATA_DIR = 'data/first_model_data'
-TRAIN_FILE = 'answers.json'
-MODEL_PATH = './models'
+if __name__ == '__main__':
 
-if os.path.isdir(MODEL_PATH) == False:
-    os.mkdir(MODEL_PATH)
+    DATA_DIR = '../data/first_model_data'
+    TRAIN_FILE = 'answers.json'
+    MODEL_PATH = './models'
 
-# initialize class
-qa_system = QuestionAnsweringSystem(DATA_DIR, TRAIN_FILE)
+    if os.path.isdir(MODEL_PATH) == False:
+        os.mkdir(MODEL_PATH)
 
-# get documents
-docs =  qa_system.convert_to_haystack_format()
-print ("pre-processing done")
+    # initialize class
+    qa_system = QuestionAnsweringSystem(DATA_DIR, TRAIN_FILE)
 
-# document store
-ds = qa_system.create_document_store(docs)
-print ('created document store')
+    # get documents
+    docs =  qa_system.convert_to_haystack_format()
+    print ("pre-processing done")
 
-# fine-tune model on data
-qa_system.fine_tune_reader_model (MODEL_PATH,n_epochs=1)
-print ('fine-tuning done')
+    # document store
+    ds = qa_system.create_document_store(docs)
+    print ('created document store')
 
-# retriever & reader
-retriever = qa_system.get_retriever(ds)
-reader = qa_system.get_reader(MODEL_PATH)
+    # fine-tune model on data
+    qa_system.fine_tune_reader_model (MODEL_PATH,n_epochs=1)
+    print ('fine-tuning done')
 
-# pipeline 
-pipe = qa_system.get_pipeline(reader, retriever)
+    # retriever & reader
+    retriever = qa_system.get_retriever(ds)
+    reader = qa_system.get_reader(MODEL_PATH)
 
-# get answers dictionary
+    # pipeline 
+    pipe = qa_system.get_pipeline(reader, retriever)
 
-answers  = qa_system.get_answers("Μπορώ να κάνω δεύτερη δόση με διαφορετικό εμβόλιο;",pipe)
-print(answers)
+    # get answers dictionary
+    answers  = qa_system.get_answers("Μπορώ να κάνω δεύτερη δόση με διαφορετικό εμβόλιο;",pipe)
+    print(answers)

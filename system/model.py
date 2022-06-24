@@ -70,3 +70,6 @@ class QuestionAnsweringSystem():
       )
     return [{'answer': result['answer'], 'context': result['context'], 'startLoc': result['offset_start_in_doc'], 'endLoc': result['offset_end_in_doc'], 'docText':  self.get_haystack_doc_text_by_id(document_store, result['document_id']), 'probability': result['probability']} for
                 result in predictions['answers']]
+
+if __name__ == '__main__':
+    pass

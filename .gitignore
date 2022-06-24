@@ -16,3 +16,4 @@ venv.bak/
 
 # models
 models/
+__pycache__/
