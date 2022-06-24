@@ -15,7 +15,7 @@ class QuestionAnsweringSystem():
       self.data_dir = data_dir
       self.train_filename = train_filename
 
-  def convert_to_haystack_format(self) -> List:
+  def convert_to_haystack_format(self):
     
     # convert txt files to dicts
     all_docs = []

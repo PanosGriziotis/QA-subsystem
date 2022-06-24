@@ -33,5 +33,5 @@ reader = qa_system.get_reader(MODEL_PATH)
 pipe = qa_system.get_pipeline(reader, retriever)
 
 # get answers dictionary
-answers  = qa_system.get_answers("Μπορώ να κάνω δεύτερη δόση με διαφορετικό εμβόλιο;",pipe)
+answers  = qa_system.get_answers("",pipe)
 print(answers)
