@@ -29,9 +29,11 @@ print ('fine-tuning done')
 retriever = qa_system.get_retriever(ds)
 reader = qa_system.get_reader(MODEL_PATH)
 
+"""
 # pipeline 
 pipe = qa_system.get_pipeline(reader, retriever)
 
 # get answers dictionary
 answers  = qa_system.get_answers("",pipe)
 print(answers)
+"""
