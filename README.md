@@ -1,9 +1,3 @@
-Steps:
+# QA-subsystem-for-Theano
 
-1) dependecies installation:
-- create a virtual environment
-- pip install -r requirements.txt
-- acivate your virtual environment
-
-2) fine-tune model on annotated data:
-- run 'python main.py' inside '/system' directory
+This is a project aiming to develop a Question Answering (QA) system that integrates with a virtual assistant (dialogue system). As a case study THEANO is selected, a greek-speaking conversational agent for COVID-19 built with the open-source framework of Rasa. 
