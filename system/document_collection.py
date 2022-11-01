@@ -5,13 +5,13 @@ import os
 import sys
 import spacy 
 
-def get_true_case (self, text):
+def get_true_case (text):
 
     "Apply a truecaser to text based on name entities"
     
     spacy_nlp = spacy.load("el_core_news_sm")
     words = [word.text for word in spacy_nlp(text)]
-    ents = [ent.text for ent in text.ents]
+    ents = [ent.text for ent in spacy_nlp(text).ents]
     capitalized_words = [w.capitalize() if w in ents else w for w in words]
     true_cased_words = [w.lower() if w.isupper() else w for w in capitalized_words]
 
@@ -47,7 +47,7 @@ def download_texts(main_url, data_dir):
             passage = [el.get_text() for el in ps[:-5]] # [:-5] to get rid of last paragraphs related to acessibility protocols 
             passage = ' '.join(passage)
             if passage not in ['\xa0','',' ']:
-                with open (f'doc{i}.txt', 'w', encoding='utf8') as doc_file:
+                with open (f'covid_data.txt', 'a', encoding='utf8') as doc_file:
                     doc_file.write(get_true_case(passage))
 
 
