@@ -1,7 +1,10 @@
-/haystack
-/data
-/qavenv
-/model
-/squad_model
+/data/xquad
+/data/nlu.yml
 /system/model
-/system/squad_model
+set_up.txt
+r.py
+/haystack
+/adapted_retriever
+/haystackEnv
+/venv
+/system/last_model
