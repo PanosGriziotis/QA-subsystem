@@ -1,6 +1,7 @@
 /data/xquad
 /data/nlu.yml
 /system/model
+<<<<<<< HEAD
 set_up.txt
 r.py
 /haystack
@@ -8,3 +9,7 @@ r.py
 /haystackEnv
 /venv
 /system/last_model
+=======
+/system/squad_model
+/system/fine_tuned_model
+>>>>>>> 332ed3f594d2dad4b8c1939e534250088e00e455
