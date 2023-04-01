@@ -13,3 +13,5 @@ r.py
 /system/squad_model
 /system/fine_tuned_model
 >>>>>>> 332ed3f594d2dad4b8c1939e534250088e00e455
+
+data/who_annotation/
