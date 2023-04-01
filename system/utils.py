@@ -8,12 +8,26 @@ from typing import List
 import textract
 from tempfile import NamedTemporaryFile
 from tqdm import tqdm
+from transformers import PreTrainedTokenizer, BatchEncoding, MT5Tokenizer
+from typing import Optional, List
+from haystack import Document
+
+class _MT5inputConverter:
+    def __call__(
+        self, tokenizer: PreTrainedTokenizer, query: str, documents: List[Document], top_k: Optional[int] = None
+    ) -> BatchEncoding:
+        conditioned_doc = " " + " ".join([d.content for d in documents])
+
+        # concatenate question and support document into MT5 input
+        query_and_docs = " {}<\s>{}<\s>".format(query, conditioned_doc)
+
+        return tokenizer([(query_and_docs)], truncation=True, padding=True, return_tensors="pt")
 
 
 def translate_docs (docs:List[str], use_gpu:bool=False):
     
     max_seq_len = 512
-    translator = TransformersTranslator(model_name_or_path="Helsinki-NLP/opus-mt-en-el", use_gpu=use_gpu, max_seq_len=max_seq_len)
+    translator = TransformersTranslator(model_name_or_path="facebook/nllb-200-distilled-600M", use_gpu=use_gpu, max_seq_len=max_seq_len)
     #c_docs = clean_and_split_docs(docs, max_seq_len=max_seq_len)
     try:
         t_docs = translator.translate_batch(documents=docs)[0]

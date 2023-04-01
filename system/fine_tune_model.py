@@ -1,23 +1,37 @@
 from haystack.nodes import FARMReader
 import os
-from haystack.utils import EarlyStopping
 from haystack.nodes.label_generator import PseudoLabelGenerator
 from typing import List
+from haystack.utils import EarlyStopping
+import logging
+import shutil
 
-def fine_tune_reader_model (data_dir, train_filename,  save_dir, use_gpu=True):
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+logging.basicConfig(level=logging.INFO)
 
-    reader = FARMReader(model_name_or_path = "deepset/xlm-roberta-base-squad2")
+def fine_tune_reader_model (model_name_or_path, data_dir, train_filename,  save_dir, use_gpu=True):
+    
+    # Create output directory if doesn't exist already
+    try:
+        os.path.isdir(save_dir)
+    except FileNotFoundError:
+        os.mkdir(save_dir)
+
+    reader = FARMReader(model_name_or_path = model_name_or_path)
+    #early_stopping = EarlyStopping(metric='f1',save_dir=save_dir, mode='max')
+      
     try:
       reader.train(
           data_dir = data_dir,
           train_filename = train_filename,
           use_gpu = use_gpu,
-          n_epochs= 10,
           batch_size= 12,
+          n_epochs = 1,
           max_seq_len = 384,
+          save_dir  = save_dir,
           num_processes = 1,
           )
-      print (f'fine-tuning done. Model saved in directory: {save_dir}')
+      print (f'Model fine-tuning done. Model saved in directory: {save_dir}')
     except Exception as e:
       print (e)
 
@@ -36,8 +50,9 @@ def fine_tune_dense_retriever(document_store, retriever):
     retriever.save("adapted_retriever")
     
 if __name__ == '__main__':
+  model = "deepset/xlm-roberta-base-squad2"
+  data_dir = '../data/deepset_covid_qa/dataset'
+  train_filename = 'COVID-QA copy-el.json'
   save_dir = './model'
-  if not os.path.isdir ('./model'):
-    os.mkdir('./model')
-
-  fine_tune_reader_model(data_dir = '../data/eody', train_filename= 'train.json', save_dir='./model')
+  logging.info('Fine tuning model on SQuAD format dataset...')
+  fine_tune_reader_model(model_name_or_path = model, data_dir = data_dir, train_filename= train_filename, save_dir=save_dir)
