@@ -18,7 +18,6 @@ class GoogleApi():
     filename,
     save_dir,
     project_id:str="qa-subsytem",
-    timeout:int=180,
     ):
         input_uri= f"gs://{self.source_bucket_name}/{filename}"
         output_uri= f"gs://{self.target_bucket_name}/{save_dir}"
@@ -29,7 +28,7 @@ class GoogleApi():
 
         input_configs_element = {
         "gcs_source": gcs_source,
-        "mime_type": "text/plain",  # Can be "text/plain" or "text/html".
+        "mime_type": "text/plain", 
         }
         gcs_destination = {"output_uri_prefix": output_uri}
         output_config = {"gcs_destination": gcs_destination}
@@ -46,7 +45,7 @@ class GoogleApi():
         )
 
         print("Waiting for translation operation to complete...")
-        response = operation.result(timeout)
+        response = operation.result()
         print("Total Characters: {}".format(response.total_characters))
         print("Translated Characters: {}".format(response.translated_characters))
 
@@ -70,10 +69,3 @@ class GoogleApi():
 
 #upload_sourcefile_to_bucket('./test_file.txt')
 #batch_translate_text()
-if __name__ == '__main__':
-    input_file_path = "../who/test_file.txt"
-    save_dir= 'results/'
-
-    ga = GoogleApi()
-
-    ga.download_translated_text()

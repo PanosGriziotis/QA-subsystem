@@ -9,8 +9,8 @@ from haystack.nodes.label_generator import PseudoLabelGenerator
 from haystack import Pipeline
 from transformers import T5Tokenizer
 from haystack.utils import launch_es
-from converter import _MT5inputConverter
 from typing import List
+
 class PipelineCreator ():
     def __init__(self) -> None:
         self.document_store = self.document_store   
@@ -19,14 +19,12 @@ class PipelineCreator ():
         preprocessor,
         converter,
         retriever,
-        reader,
-        translator = None):
+        reader):
 
         query_pipeline = Pipeline()
         query_pipeline.add_node(component=retriever, inputs=["Query"], name="Retriever")
         query_pipeline.add_node(component=reader, inputs=["Retriever"], name="Reader")
-        if translator:
-            query_pipeline.add_node(component=translator, inputs=["Reader"], name= "Translator")
+
         index_pipeline = Pipeline()
         index_pipeline.add_node(component=converter, inputs=["File"], name="TextConverter")
         index_pipeline.add_node(component=preprocessor, inputs=["TextConverter"], name="Preprocessor")

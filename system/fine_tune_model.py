@@ -18,7 +18,7 @@ def fine_tune_reader_model (model_name_or_path, data_dir, train_filename,  save_
         os.mkdir(save_dir)
 
     reader = FARMReader(model_name_or_path = model_name_or_path)
-    #early_stopping = EarlyStopping(metric='f1',save_dir=save_dir, mode='max')
+    early_stopping = EarlyStopping(save_dir=save_dir)
       
     try:
       reader.train(
@@ -26,10 +26,9 @@ def fine_tune_reader_model (model_name_or_path, data_dir, train_filename,  save_
           train_filename = train_filename,
           use_gpu = use_gpu,
           batch_size= 12,
-          n_epochs = 1,
           max_seq_len = 384,
-          save_dir  = save_dir,
           num_processes = 1,
+          early_stopping = early_stopping
           )
       print (f'Model fine-tuning done. Model saved in directory: {save_dir}')
     except Exception as e:
@@ -52,7 +51,8 @@ def fine_tune_dense_retriever(document_store, retriever):
 if __name__ == '__main__':
   model = "deepset/xlm-roberta-base-squad2"
   data_dir = '../data/deepset_covid_qa/dataset'
-  train_filename = 'COVID-QA copy-el.json'
+  train_filename = 'COVID-QA-el.json'
   save_dir = './model'
+  #dev_split = 0.1
   logging.info('Fine tuning model on SQuAD format dataset...')
   fine_tune_reader_model(model_name_or_path = model, data_dir = data_dir, train_filename= train_filename, save_dir=save_dir)

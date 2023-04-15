@@ -337,29 +337,24 @@ class SquadTranslator:
 
 if __name__ == "__main__":
     start = time.time()
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument('-squad_file', type=str, help='SQUAD dataset to translate')
-    #parser.add_argument('-lang_source', type=str, default='en',
-                       # help='language of the SQUAD dataset to translate (the default value is set to English)')
-    #parser.add_argument('-lang_target', type=str, default = 'el', help='translation language')
-    #parser.add_argument('-output_dir', type=str, help='directory where all the generated files are stored')
-    #parser.add_argument('-answers_from_alignment', action='store_true',
-                       # help='retrieve translated answers only from the alignment')
-    #parser.add_argument('-alignment_type', type=str, default='forward', help='use a given translation service')
-    #parser.add_argument('-batch_size', type=int, default='32', help='batch_size for the translation script '
-                                                                    #'(change this value in case of CUDA out-of-memory')
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-squad_file', type=str, help='SQUAD dataset to translate')
+    parser.add_argument('-lang_source', type=str, default='en',
+                        help='language of the SQUAD dataset to translate (the default value is set to English)')
+    parser.add_argument('-lang_target', type=str, default = 'el', help='translation language')
+    parser.add_argument('-output_dir', type=str, help='directory where all the generated files are stored')
+
+    args = parser.parse_args()
 
     # Create output directory if doesn't exist already
-    #try:
-        #os.mkdir(args.output_dir)
-    #except FileExistsError:
-        #pass
-
-    translator = SquadTranslator(squad_file='dataset/COVID-QA.json',
-                                 lang_source='en',
-                                 lang_target='el',
-                                 output_dir='dataset/',
+    try:
+        os.mkdir(args.output_dir)
+    except FileExistsError:
+        pass
+    translator = SquadTranslator(squad_file=args.squad_file,
+                                 lang_source=args.lang_source,
+                                 lang_target=args.lagn_target,
+                                 output_dir=args.output_dir,
                                  answers_from_alignment=True)
 
 
