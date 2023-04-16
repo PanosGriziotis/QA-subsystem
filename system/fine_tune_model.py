@@ -44,21 +44,18 @@ def fine_tune_reader_model (model_name_or_path,
     reader = FARMReader(model_name_or_path = model_name_or_path)
 
     # train function
-    try:
-        reader.train(
-            data_dir = data_dir,
-            train_filename = train_filename,
-            dev_filename = dev_filename,
-            use_gpu = use_gpu,
-            batch_size= batch_size,
-            n_epochs = n_epochs,
-            max_seq_len = 384,
-            num_processes = 1,
-            early_stopping = early_stopping
-            )
-        print (f'Model fine-tuning done. Model saved in directory: {save_dir}')
-    except Exception as e:
-        print (e)
+    reader.train(
+        data_dir = data_dir,
+        train_filename = train_filename,
+        dev_filename = dev_filename,
+        use_gpu = use_gpu,
+        batch_size= batch_size,
+        n_epochs = n_epochs,
+        max_seq_len = 384,
+        num_processes = 1,
+        early_stopping = early_stopping
+        )
+    print (f'Model fine-tuning done. Model saved in directory: {save_dir}')
 
 def fine_tune_dense_retriever(document_store, retriever):
     query_doc_pairs  = []

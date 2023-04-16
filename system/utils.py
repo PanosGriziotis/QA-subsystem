@@ -50,10 +50,14 @@ def train_dev_split(filepath, dev_split):
         print (f"train set instances: {train_len}\n dev set instances: {dev_len}")
 
         path = os.path.dirname (filepath)
+
         with open(os.path.join(path, "train_file.json"), 'w') as train_file:
-            with open(os.path.join("dev_file.json"), 'w') as dev_file:
-                json.dump({'data':[train_set]}, train_file, ensure_ascii=False)
-                json.dump ({'data':[dev_set]}, dev_file, ensure_ascii=False)
+            
+            json.dump({'data':train_set}, train_file, ensure_ascii=False, indent=4)
+        
+        with open(os.path.join(path,"dev_file.json"), 'w') as dev_file:
+                
+            json.dump ({'data':dev_set}, dev_file, ensure_ascii=False, indent=4)
 
 
 def translate_docs (docs:List[str], use_gpu:bool=False):
