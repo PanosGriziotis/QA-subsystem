@@ -28,14 +28,13 @@ class _MT5inputConverter:
 def train_dev_split(filepath, dev_split):
 
     with open (filepath, 'r') as file:
-        data = json.load(file)
-        data = random.shuffle(data['data'])
+        data = json.load(file)['data']
+        random.shuffle(data)
         dev_samples = len(data) * dev_split
         train_samples = round(len(data) - dev_samples)
         train_set = data[:train_samples]
         dev_set = data[train_samples:]
-
-
+        
         dev_len = 0
         train_len = 0
 

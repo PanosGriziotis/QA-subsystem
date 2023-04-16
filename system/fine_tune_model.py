@@ -78,7 +78,7 @@ def fine_tune_dense_retriever(document_store, retriever):
 if __name__ == '__main__':
   
   model = "deepset/xlm-roberta-base-squad2"
-  data_dir = '../data/deepset_covid_qa/dataset'
+  data_dir = '/other/users/panagri/thesis/QA-subsystem/data/deepset_covid_qa/dataset'
   train_filename = 'COVID-QA-el.json'
   save_dir = './model'
   dev_split = 0.2
