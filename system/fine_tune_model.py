@@ -26,7 +26,7 @@ def fine_tune_reader_model (model_name_or_path,
 
     # create train dev sets
     if dev_split != 0:
-       train_dev_split(data_dir + "/" + train_filename)
+       train_dev_split(data_dir + "/" + train_filename, dev_split=dev_split)
        train_filename = "train_file.json"
        dev_filename = "dev_file.json"
 
