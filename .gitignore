@@ -2,6 +2,8 @@
 /data/nlu.yml
 /system/model
 git_token.txt
+/data/deepset_covid_qa/dataset/train_file.json
+
 <<<<<<< HEAD
 set_up.txt
 r.py
