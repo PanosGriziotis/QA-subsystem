@@ -11,6 +11,8 @@ from tqdm import tqdm
 from transformers import PreTrainedTokenizer, BatchEncoding, MT5Tokenizer
 from typing import Optional, List
 from haystack import Document
+import random
+import os
 
 class _MT5inputConverter:
     def __call__(
@@ -22,6 +24,37 @@ class _MT5inputConverter:
         query_and_docs = " {}<\s>{}<\s>".format(query, conditioned_doc)
 
         return tokenizer([(query_and_docs)], truncation=True, padding=True, return_tensors="pt")
+
+def train_dev_split(filepath, dev_split):
+
+    with open (filepath, 'r') as file:
+        data = json.load(file)
+        data = random.shuffle(data['data'])
+        dev_samples = len(data) * dev_split
+        train_samples = round(len(data) - dev_samples)
+        train_set = data[:train_samples]
+        dev_set = data[train_samples:]
+
+
+        dev_len = 0
+        train_len = 0
+
+        for i, set in enumerate([train_set, dev_set]):
+            for par in set:
+                for qas in par['paragraphs']:
+                    for qas in qas['qas']:
+                        if i == 0:
+                            train_len += 1
+                        else:
+                            dev_len += 1
+        
+        print (f"train set instances: {train_len}\n dev set instances: {dev_len}")
+
+        path = os.path.dirname (filepath)
+        with open(os.path.join(path, "train_file.json"), 'w') as train_file:
+            with open(os.path.join("dev_file.json"), 'w') as dev_file:
+                json.dump({'data':[train_set]}, train_file, ensure_ascii=False)
+                json.dump ({'data':[dev_set]}, dev_file, ensure_ascii=False)
 
 
 def translate_docs (docs:List[str], use_gpu:bool=False):
