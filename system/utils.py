@@ -5,7 +5,6 @@ from haystack.nodes import PreProcessor
 from haystack.nodes import TextConverter
 from haystack import Document
 from typing import List
-import textract
 from tempfile import NamedTemporaryFile
 from tqdm import tqdm
 from transformers import PreTrainedTokenizer, BatchEncoding, MT5Tokenizer
@@ -123,7 +122,7 @@ def get_true_case (text):
     capitalized_words = [w.capitalize() if w in ents else w for w in words]
     true_cased_words = [w.lower() if w.isupper() else w for w in capitalized_words]
     return ' '.join (join_punctuation(true_cased_words))
-
+"""
 def parse_pdf(response):
     tempfile = NamedTemporaryFile(suffix='.pdf')
     tempfile.write(response.content)
@@ -132,7 +131,7 @@ def parse_pdf(response):
     extracted_data = extracted_data.decode('utf-8')
     tempfile.close()
 
-
+"""
 
     #print (c_answers)
     #print ('max_len_before:', len(max(answers, key=len)))

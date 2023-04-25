@@ -3,6 +3,9 @@
 /system/model
 git_token.txt
 /data/deepset_covid_qa/dataset/train_file.json
+/qavenv
+/qavenv2
+./requirements.txt
 
 <<<<<<< HEAD
 set_up.txt
