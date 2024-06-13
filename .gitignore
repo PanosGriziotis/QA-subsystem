@@ -1,23 +1,14 @@
-/data/xquad
-/data/nlu.yml
-/system/model
-git_token.txt
-/data/deepset_covid_qa/dataset/train_file.json
-/qavenv
-/qavenv2
-./requirements.txt
-
-<<<<<<< HEAD
-set_up.txt
-r.py
+/data/deepset_covid_qa
+/data/npho
+/data/xquad-el
+/data/wiki
+/system/experiments
+/system/meltemi_env
+/system/qavenv
 /haystack
-/adapted_retriever
-/haystackEnv
-/venv
-/system/last_model
-=======
-/system/squad_model
-/system/fine_tuned_model
->>>>>>> 332ed3f594d2dad4b8c1939e534250088e00e455
-
-data/who_annotation/
+/mlruns
+/qavenv
+git_token.txt
+docker-compose.yml
+pipelines/
+rest_api/rest_api/pipeline
