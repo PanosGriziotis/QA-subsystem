@@ -8,7 +8,7 @@
 /haystack
 /mlruns
 /qavenv
-git_token.txt
 docker-compose.yml
 pipelines/
 rest_api/rest_api/pipeline
+.gitignore
