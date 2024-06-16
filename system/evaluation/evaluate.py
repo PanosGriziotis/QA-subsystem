@@ -15,15 +15,18 @@ logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logg
 logging.getLogger("haystack").setLevel(logging.INFO)
 
 
-
 def index_eval_labels(document_store, eval_filename: str):
     """
     Index evaluation labels into the document store.
 
-    Parameters:
     document_store (DocumentStore): The document store instance.
     eval_filename (str): The path to the evaluation dataset file.
     """
+    index = 'eval_docs'
+    label_index = 'label_index'
+    document_store.delete_documents (index=index)
+    document_store.delete_labels (index=label_index)
+
     label_preprocessor = PreProcessor(
         split_length=256,
         split_respect_sentence_boundary=False,
@@ -33,8 +36,8 @@ def index_eval_labels(document_store, eval_filename: str):
  
     document_store.add_eval_data(
         filename=eval_filename,
-        doc_index=document_store.index,
-        label_index=document_store.label_index,
+        doc_index=index,
+        label_index=label_index,
         preprocessor=label_preprocessor,
     )
 
@@ -42,12 +45,8 @@ def get_eval_labels_and_paths(document_store, tempdir) -> Tuple[List[dict], List
     """
     Retrieve evaluation labels and file paths for documents in the document store.
 
-    Parameters:
     document_store (DocumentStore): The document store instance.
     tempdir: A temporary directory instance for storing document files.
-
-    Returns:
-    Tuple[List[dict], List[Path]]: A tuple containing a list of evaluation labels and a list of file paths.
     """
     file_paths = []
     docs = document_store.get_all_documents()
@@ -70,11 +69,12 @@ def evaluate_retriever(retriever, document_store, eval_filename: str, top_k: Opt
     Evaluate a retriever on a SQuAD format evaluation dataset. If a top_k_list is provided, the evaluation is iterative for each top_k value, generating one evaluation report for each value.
     """
     index_eval_labels(document_store, eval_filename)
+    document_store.update_embeddings(retriever= retriever,index="eval_docs")
 
     if top_k_list is not None:
         reports = {}
         for k in tqdm(top_k_list):
-            reports[k] = retriever.eval(label_index=document_store.label_index, doc_index=document_store.index, top_k=k, document_store=document_store)
+            reports[k] = retriever.eval(label_index="label_index", doc_index="eval_docs", top_k=k, document_store=document_store)
         return reports
     else:
         if top_k is None:
@@ -86,6 +86,7 @@ def evaluate_reader(reader:FARMReader, eval_filename: str, top_k: Optional[int] 
     """
     Evaluate reader on a SQuAD format evaluation dataset.
     """
+
     data_dir = os.path.dirname(eval_filename)
 
     if top_k_list is not None:
@@ -99,6 +100,7 @@ def evaluate_reader(reader:FARMReader, eval_filename: str, top_k: Optional[int] 
         return reader.eval_on_file(data_dir, eval_filename)
     else:
         return reader.eval_on_file(data_dir, eval_filename)
+
 
 def run_experiment(exp_name: str, eval_filename: str, pipeline_path: str, run_name: str, query_params={"Retriever": {"top_k": 10}, "Reader": {"top_k": 5}}):
     """
