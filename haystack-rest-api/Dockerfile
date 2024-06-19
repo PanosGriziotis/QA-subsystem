@@ -6,9 +6,11 @@ WORKDIR /code
 ENV PYTHONPATH="${PYTHONPATH}:/code/src:/code"
 
 COPY ./requirements.txt /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 RUN pip install torch==2.3.0 --index-url https://download.pytorch.org/whl/cu118 
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+
 
 COPY ./src /code/src
 COPY ./ingest_example_data.py /code/ingest_example_data.py
