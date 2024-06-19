@@ -1,0 +1,15 @@
+# REST API
+fastapi==0.104.0
+uvicorn[standard]==0.23.2
+python-multipart==0.0.6
+
+# haystack
+farm-haystack==1.25.5
+
+# elasticsearch document store
+elasticsearch==7.17.9
+
+# for loading the llm generator model
+bitsandbytes==0.43.1
+xformers==0.0.26.post1
+accelerate==0.31.0
