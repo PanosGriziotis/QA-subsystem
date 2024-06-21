@@ -8,7 +8,11 @@
 /haystack
 /mlruns
 /qavenv
-docker-compose.yml
-pipelines/
 rest_api/rest_api/pipeline
 .gitignore
+haystack-rest-api/test_venv
+__pycache__
+t_env
+/z_del_1
+/z_del_2
+/z_del_3

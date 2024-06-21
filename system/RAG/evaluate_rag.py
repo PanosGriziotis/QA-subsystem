@@ -15,7 +15,7 @@ from deepeval.test_case import LLMTestCase
 from deepeval.dataset import EvaluationDataset, Golden
 from datasets import load_dataset
 
-from rag_pipeline import build_generator
+from system.rest_api.rest_api.pipeline.rag_pipeline import build_generator
 import os
 # 1. Evaluate generator on given ground truth context.
 # Load the dataset
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     dataset = EvaluationDataset(test_cases)
     
-    result = dataset.evaluate([FaithfulnessMetric(model= "gpt-3.5-turbo")])
+    result = dataset.evaluate([RAGASAnswerRelevancyMetric(model= "gpt-3.5-turbo")])
     print ("RESULT:", result)
     
 

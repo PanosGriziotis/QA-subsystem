@@ -3,22 +3,17 @@ from pathlib import Path
 import os
 import uuid
 
-from fastapi import FastAPI, UploadFile, File
-from haystack import Pipeline
+from fastapi import FastAPI, UploadFile, File, HTTPException
+import logging
 
 from pipelines.rag_pipeline import rag_pipeline
+from pipelines.extractive_qa_pipeline import extractive_qa_pipeline
 from pipelines.indexing_pipeline import indexing_pipeline
 
-app = FastAPI(title="My Haystack RAG API")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Load the pipelines from the YAML files
-
-"""
-with open("./src/pipelines/indexing_pipeline.yaml", "rb") as f:
-    indexing_pipeline = Pipeline.load(f)
-with open("./src/pipelines/rag_pipeline.yaml", "rb") as f:
-    rag_pipeline = Pipeline.load(f)
-"""
+app = FastAPI(title="QA-subystem API")
 
 # Create the file upload directory if it doesn't exist
 FILE_UPLOAD_PATH = os.getenv("FILE_UPLOAD_PATH", str((Path(__file__).parent.parent / "file-upload").absolute()))
@@ -38,7 +33,7 @@ def check_status():
 
 
 @app.post("/file-upload")
-def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool] = False):
+def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool] = False, recreate_index: Optional[bool]=False):
     """
     Upload a list of files to be indexed.
 
@@ -50,14 +45,20 @@ def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool]
 
     for file_to_upload in files:
         try:
+            
             file_path = Path(FILE_UPLOAD_PATH) / f"{uuid.uuid4().hex}_{file_to_upload.filename}"
+            
             with file_path.open("wb") as fo:
+                
                 fo.write(file_to_upload.file.read())
+            
             file_paths.append(file_path)
+        
         finally:
+            
             file_to_upload.file.close()
 
-    result = indexing_pipeline.run(file_paths=file_paths)
+    result = indexing_pipeline(recreate_index=recreate_index).run(file_paths=file_paths)
 
     # Clean up indexed files
     if not keep_files:
@@ -67,11 +68,31 @@ def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool]
     return result
 
 
-@app.get("/query")
-def ask_rag_pipeline(query: str):
-    """
-    Ask a question to the RAG pipeline.
-    """
-    result = rag_pipeline.run(query=query)
+# Extractive QA pipeline endpoint
+@app.get("/extractive-query")
+def ask_retriever_reader_pipeline(query: str):
+    
+    try:
+        result = extractive_qa_pipeline().run(query=query)
+        
+        return result
+    
+    except Exception as e:
+        
+        logger.error(e)
+        
+        raise HTTPException(status_code=500, detail="Running Pipeline Error")
 
-    return result
+@app.get("/rag-query")
+def ask_rag_pipeline(query: str):
+    try:
+        result = rag_pipeline().run(query=query)
+        
+        return result
+    
+    except Exception as e:
+        
+        logger.error(e)
+        
+        raise HTTPException(status_code=500, detail="Running Pipeline Error")
+
