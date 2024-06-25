@@ -1,0 +1,10 @@
+# haystack
+farm-haystack[inference,elasticsearch,preprocessing,crawler,file-conversion]==1.25.5
+
+fastapi==0.104.0
+uvicorn[standard]==0.23.2
+python-multipart==0.0.6
+
+bitsandbytes==0.42.0
+accelerate==0.30.1
+matplotlib==3.7.1
