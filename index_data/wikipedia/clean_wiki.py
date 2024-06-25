@@ -21,11 +21,11 @@ logging.basicConfig(
 )
 
 def normalize(text):
-    """Normalize text and remove disambiguation, list, category and prototype wiki pages."""
+    """Normalize text"""
     return unicodedata.normalize('NFC', text.replace('\n', ' '))
 
 def remove_structured_pages(article):
-    """Remove articles from special categories"""
+    """Remove disambiguation, list, category and prototype wiki pages."""
 
     for k, v in article.items():      
         article[k] =  html.unescape(normalize(v))
@@ -40,7 +40,7 @@ def remove_structured_pages(article):
     return {'id': article['id'], 'title': article['title'], 'content': article['text']}
 
 def preprocess_wiki_docs(filename):
-    """Parses the contents of a file with wikipedia data. Each line is a JSON encoded article."""
+    """"""
     
     logging.info(f"Starting to preprocess file: {filename}")
     start_time = time.time()
@@ -58,23 +58,3 @@ def preprocess_wiki_docs(filename):
     logging.info (f"Number of wiki articles after preprocessing: {len(documents)}")
 
     return documents
-
-if __name__ == '__main__':
-
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file_path', type=str, help='/path/to/data/filename.txt')
-    args = parser.parse_args()
-
-    basename = os.path.splitext(os.path.basename(args.file_path))[0]
-    dir = os.path.dirname(args.file_path)
-    output_file = output_file = os.path.join(dir, f"{basename}_processed.txt")
-
-    with open(output_file, "w", encoding="utf-8") as writer:
-        docs = preprocess_wiki(args.file_path)
-        for doc in docs:
-            json_string = json.dumps(doc, ensure_ascii=False)
-            writer.write(json_string + "\n")
-
-    logging.info(f"Processing complete. Output written to: {output_file}")
-    """

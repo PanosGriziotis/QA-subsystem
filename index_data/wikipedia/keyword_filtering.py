@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional, Union
 
-from haystack.nodes import BM25Retriever, SentenceTransformersRanker
+from haystack.nodes import BM25Retriever
 from haystack.document_stores import ElasticsearchDocumentStore, InMemoryDocumentStore
 
 import numpy as np
@@ -9,7 +9,6 @@ from haystack.nodes.base import BaseComponent
 
 import logging
 import argparse
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

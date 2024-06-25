@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# Apply  pre-processing and domain filtering (optional) on fetched wikipedia dump articles before saving to a document store index.  
-# input file: each line should be a wikipedia article in json format
+# Apply  pre-processing and domain filtering (optional) on fetched wikipedia dump articles
+# input file: each line should be a wikipedia article in JSON format
 
 import logging
 import tempfile
@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 
 from haystack.pipelines import Pipeline
-from haystack.document_stores import ElasticsearchDocumentStore
 from haystack.nodes import PreProcessor, JsonConverter
 
 from clean_wiki import preprocess_wiki_docs
@@ -92,11 +91,9 @@ def main (data_filename):
     return preporocess_wiki_files(file_paths)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_filename', type=str, help='/path/to/data_filename')
-    #parser.add_argument('--index_name', type=str, default='test', help='name of index in document store. If already exists, it will be overwritted')
     parser.add_argument('--preprocess', action='store_true',
                         help='Preprocess wiki documents')
     parser.add_argument('--apply_filter', action='store_true',

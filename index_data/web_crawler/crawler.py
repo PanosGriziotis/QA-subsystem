@@ -167,12 +167,12 @@ def convert_crawled_data_to_docs():
             continue
         crawled_files.append(file_path)
 
-    # Extract text from remaining files in directory (only PDF/DOCX/TXT formats)
+    # Extract text from remaining files in directory
     docs = process_files(files=crawled_files)
 
     # Merge the two lists of documents
     all_docs = docs_from_json + docs
-    # preprocess doc (add split, clean, remove footer, convert to haystack Document format)
+    
     return all_docs
 
 def run_web_crawler(crawler):
@@ -191,7 +191,6 @@ if __name__ == '__main__':
 
     eody_crawler = Crawler(urls = [
         "https://eody.gov.gr/neos-koronaios-covid-19/",
-        #"https://eody.gov.gr/disease/"
         ],
         crawler_depth=2,
         filter_urls = [
@@ -209,8 +208,6 @@ if __name__ == '__main__':
         output_dir='crawled_files')
 
     crawled_docs = []
-    
-    
 
     for crawler in [eody_crawler, moh_crawler]:
         docs = run_web_crawler(crawler)
