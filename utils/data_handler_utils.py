@@ -5,52 +5,97 @@ from haystack.nodes import PreProcessor
 from haystack import Document
 from typing import List
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer, BatchEncoding
-from haystack.nodes import BM25Retriever
-from typing import Optional, List
+
 from haystack import Document
 import random
 import os
 from transformers import AutoTokenizer
-from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser, PreProcessor
-from haystack.document_stores import ElasticsearchDocumentStore
+from haystack.nodes import PreProcessor
+import re
+import nltk
+from haystack.utils import SquadData
 
-class _MT5inputConverter:
-    def __call__(
-        self, tokenizer: PreTrainedTokenizer, query: str, documents: List[Document], top_k: Optional[int] = None
-    ) -> BatchEncoding:
-        conditioned_doc = " " + " ".join([d.content for d in documents])
 
-        # concatenate question and support document into MT5 input
-        query_and_docs = " {}<\s>{}<\s>".format(query, conditioned_doc)
+def post_process_generator_answers (result):
+    """Post-process answers in the Generator's output to avoid incomplete text resulting from the max_new_tokens parameter."""
+    
+    processed_answers = []
+    for answer_obj in result ["answers"]:
+        answer_obj.answer = remove_incomplete_sentences(answer_obj.answer)
+        processed_answers.append(answer_obj)
 
-        return tokenizer([(query_and_docs)], truncation=True, padding=True, return_tensors="pt")
+    result['answers'] = processed_answers
+    return result
 
-def train_dev_split(filepath, dev_split):
+def remove_incomplete_sentences(text):
+    """Filter out incomplete sentences from a text where sentences might be cut off"""
 
-    with open (filepath, 'r') as file:
-        data = json.load(file)['data']
+    nltk.download('punkt')
+
+    sentences = nltk.sent_tokenize(text)
+    complete_sentences = []
+
+    sentence_end_regex = re.compile(r'.*[\.\;!]$')
+
+    for sentence in sentences:
+        
+        if sentence_end_regex.match(sentence.strip()):
+            complete_sentences.append(sentence)
+
+    filtered_text = ' '.join(complete_sentences)
+
+    return filtered_text
+
+def remove_second_answers_occurrence(result):
+    new_result= {}
+    key_count = 0
+
+    for key, value in result.items():
+        if key == "answers":
+            key_count += 1
+            if key_count == 2:
+                continue  # Skip the second occurrence
+        new_result[key] = value
+
+    return new_result
+
+def split_squad_dataset (filepath, split_ratio: int = 0.1):
+
+    with open(filepath, encoding="utf-8") as f:
+
+        # load and count total num of examples
+        data = json.load(f)
+        num_of_examples =  SquadData (data).count()
+
+        # shuffle examples
+        data = data["data"]
         random.shuffle(data)
-        dev_samples = len(data) * dev_split
-        train_samples = round(len(data) - dev_samples)
-        train_set = data[:train_samples]
-        dev_set = data[train_samples:]      
-        dev_len = 0
-        train_len = 0
-        for i, set in enumerate([train_set, dev_set]):
-            for par in set:
-                for qas in par['paragraphs']:
-                    for qas in qas['qas']:
-                        if i == 0:
-                            train_len += 1
-                        else:
-                            dev_len += 1
-        print (f"train set instances: {train_len}\n dev set instances: {dev_len}")
-        path = os.path.dirname (filepath)
-        with open(os.path.join(path, "train_file.json"), 'w') as train_file:
-            json.dump({'data':train_set}, train_file, ensure_ascii=False, indent=4)
-        with open(os.path.join(path,"dev_file.json"), 'w') as dev_file:       
-            json.dump ({'data':dev_set}, dev_file, ensure_ascii=False, indent=4)
+        counter = 0
+        test_set = []
+
+        for article in data:
+            
+            for paragraph in article["paragraphs"]:
+                counter += (len(paragraph["qas"]))
+
+            if counter >= round (num_of_examples * split_ratio):
+                break
+            else:
+                test_set.append (article)
+                    
+        train_set = {"data" : data [len(test_set):]}
+        test_set = {"data" : test_set}
+
+    print (f"train set instances: {(num_of_examples-counter)}\n dev set instances: {counter}")
+    
+    # Write datasets
+    path = os.path.dirname (filepath)
+
+    with open(os.path.join(path, "train_file.json"), 'w') as train_file:
+        json.dump(train_set, train_file, ensure_ascii=False, indent=4)
+
+    with open(os.path.join(path,"dev_file.json"), 'w') as dev_file:       
+        json.dump (test_set, dev_file, ensure_ascii=False, indent=4)
 
 
 def translate_docs (docs:List[str], use_gpu:bool=False):
@@ -107,7 +152,7 @@ def join_punctuation(seq, characters='.,;?!:'):
     yield current
     return ' '.join(seq)
 
-
+"""
 def get_true_case (text):
     spacy_nlp = spacy.load("el_core_news_sm")
     words = [word.text for word in spacy_nlp(text)]
@@ -115,6 +160,7 @@ def get_true_case (text):
     capitalized_words = [w.capitalize() if w in ents else w for w in words]
     true_cased_words = [w.lower() if w.isupper() else w for w in capitalized_words]
     return ' '.join (join_punctuation(true_cased_words))
+"""
 
 def fit_passage_in_max_len (context, answer, max_seq_len_passage):
     """This function helps trimming a given passage in order to not exceed the maximum sequence length of a model while ensuring to also include the respective answer"""
@@ -170,34 +216,6 @@ def get_query_doc_pairs_from_dpr_file (dpr_filename):
         query_doc_pairs.append({"question": question, "document": document})
     return query_doc_pairs
 
-def monitor_directory(directory):
-    """delete files when needed"""
-    # Get initial list of files in the directory
-    initial_files = set(os.listdir(directory))
-    
-    while True:
-        # Get current list of files in the directory
-        current_files = set(os.listdir(directory))
-        
-        # Find new files by subtracting initial files from current files
-        new_files = current_files - initial_files
-        
-        # If there are new files, delete them and store their names
-        if new_files:
-            for file_name in new_files:
-                file_path = os.path.join(directory, file_name)
-                # Delete the file
-                os.remove(file_path)
-                # Store the file name in a variable or data structure
-                # For example, you can append it to a list
-                print(f"Deleted file: {file_name}")
-        
-        # Update initial files for the next iteration
-        initial_files = current_files
-        
-        # Sleep for some time before checking again
-        time.sleep(1)  # Adjust this value as needed
+if __name__ == "__main__":
 
-
-if __name__ == '__main__': 
-    AnswerParser(pattern = r"(?<=<\|assitant\|>\n)([\s\S]*)")
+    post_process_generator_answers()

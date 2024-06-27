@@ -15,9 +15,6 @@ python3 -m venv venv
 # Activate the virtual environment
 source venv/bin/activate
 
-# Set the PYTHONPATH to include the current directory
-export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
-
 # Upgrade pip
 pip install --upgrade pip
 
@@ -28,11 +25,8 @@ pip install  --no-cache-dir -r requirements.txt
 #pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu118
 pip install --no-cache-dir torch==2.3.1+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
-# Optionally, set PYTHONPATH for the QA-subsystem
-export PYTHONPATH="$PYTHONPATH:$SCRIPT_DIR"
-
 # Start the Elasticsearch service using a Docker container
-python3 document_store/initialize_document_store.py
+python3 document_store/initialize_document_store.py --launch
 
 # Run the FastAPI application
 uvicorn main:app --host 0.0.0.0 --port 8000

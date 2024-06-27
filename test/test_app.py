@@ -18,50 +18,71 @@ def test_file_upload_endpoint():
     logging.info("Testing the file upload endpoint...")
     start_time = time.time()
 
-    for txt_file in glob.glob("example_data/*.txt"):
-        with open(txt_file, "rb") as f:
-            logging.info(f"Uploading file: {txt_file}")
-            r = requests.post(url="http://127.0.0.1:8000/file-upload", files={"files": f})
-            json_response = r.json()
-            assert len(json_response["documents"]) > 0
-    
+    for file in glob.glob("./example_data/*"):
+
+        logging.info(f"Indexing content in {file} to document store")
+        
+        with open(file, "rb") as f:
+           r = requests.post(url="http://127.0.0.1:8000/file-upload", files={"files": f})
+           json_response = r.json()
+           assert len(json_response["documents"]) > 0
+
     end_time = time.time()
+
     logging.info(f"File upload endpoint test passed. (Time taken: {end_time - start_time:.4f} seconds)")
+    
 
 def test_rag_query_endpoint():
 
-    logging.info("Testing the RAG query endpoint...")
+    logging.info("Testing the rag query endpoint...")
     query = "Πώς μεταδίδεται ο covid-19;"
     logging.info(f"Query: {query}")
+    
     start_time = time.time()
-
-    r = requests.get(url="http://127.0.0.1:8000/rag-query", params={"query": query})
+    
+    request_body = {
+        "query": query,
+        "params": {"Retriever": {"top_k": 1}, "Generator": {"max_new_tokens": 50}}
+        }
+    
+    r = requests.post(url="http://127.0.0.1:8000/rag-query", json=request_body)
     json_response = r.json()
+
+    end_time = time.time()
+
     logging.info(f"Received response: {json_response}")
     
     assert json_response['answers']
     assert len(json_response['documents']) > 0
     assert json_response['query'] == query
-    end_time = time.time()
     
-    logging.info(f"RAG query endpoint test passed. (Time taken: {end_time - start_time:.4f} seconds)")
+    logging.info(f"Extractive query endpoint test passed. (Time taken: {end_time - start_time:.4f} seconds)")
 
 def test_extractive_query_endpoint():
     
     logging.info("Testing the extractive query endpoint...")
     query = "Πώς μεταδίδεται ο covid-19;"
     logging.info(f"Query: {query}")
+    
     start_time = time.time()
     
-    r = requests.get(url="http://127.0.0.1:8000/extractive-query", params={"query": query})
+    request_body = {
+        "query": query,
+        "params": {"Retriever": {"top_k": 5}, "Reader": {"top_k": 1}},
+        }
+    r = requests.post(url="http://127.0.0.1:8000/extractive-query", json=request_body)
+
+    end_time = time.time()
+
     json_response = r.json()
+
     logging.info(f"Received response: {json_response}")
     
     assert json_response['answers']
     assert len(json_response['documents']) > 0
     assert json_response['query'] == query
     
-    end_time = time.time()
+    
     logging.info(f"Extractive query endpoint test passed. (Time taken: {end_time - start_time:.4f} seconds)")
 
 if __name__ == "__main__":

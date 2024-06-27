@@ -1,6 +1,7 @@
-import os
 import time
 import requests
+import argparse
+
 from haystack.document_stores import ElasticsearchDocumentStore
 from haystack.utils import launch_es
 
@@ -24,34 +25,34 @@ def initialize_document_store():
         port=9200,
         username="",
         password="",
-        index="test_api",
-        embedding_dim=768,
+        index="document",
         duplicate_documents="overwrite"
     )
 
-document_store = None
 if check_elasticsearch():
     document_store = initialize_document_store()
-    
+else:
+    document_store = None
+
 if __name__ == "__main__":
-    # Start Elasticsearch docker container
-    launch_es()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--launch", action="store_true", help="Laucnh Elasticsearch service")
+    args = parser.parse_args()
 
-    # Wait for Elasticsearch to be ready
-    print("Checking for active Elasticsearch service...")
-    retries = 10
-    while retries > 0:
-        if check_elasticsearch():
-            print("Elasticsearch is up and running.")
-            break
+    if args.launch:
+        # Start Elasticsearch docker container
+        launch_es()
+        # Wait for Elasticsearch to be ready
+        print("Checking for active Elasticsearch service...")
+        retries = 10
+        while retries > 0:
+            if check_elasticsearch():
+                print("Elasticsearch is up and running.")
+                break
+            else:
+                print("Waiting for Elasticsearch to start...")
+                retries -= 1
+                time.sleep(5)
         else:
-            print("Waiting for Elasticsearch to start...")
-            retries -= 1
-            time.sleep(5)
-    else:
-        print("Elasticsearch did not start in time.")
-        exit(1)
-
-    # Initialize the document store
-    es_ds = initialize_document_store()
-    print("Elasticsearch document store initialized.")
+            print("Elasticsearch did not start in time.")
+            exit(1)

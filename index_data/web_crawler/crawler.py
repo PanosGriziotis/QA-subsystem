@@ -10,44 +10,43 @@ import shutil
 import re
 import argparse
 from urllib.parse import urlparse
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from haystack.nodes import Crawler
-from utils.file_classifier import classify_and_convert_file
+from utils.file_type_classifier import classify_and_convert_file_to_docs
 
 logging.basicConfig(level=logging.INFO)
 
 
-def clean_text(text):
+def clean_text(text:str):
+    """Clean scraped text"""
 
     # normalize unicode escape sequences
     text = unicodedata.normalize('NFC', text)
-
     # Remove CSS styles within { } braces and any trailing text after the closing brace
     text = re.sub(r'\{[^{}]*\}.*?', '', text, flags=re.DOTALL)
-    
     # Remove CSS styles within <style> tags
     text = re.sub(r'<style.*?>.*?</style>', '', text, flags=re.DOTALL)
-    
     # Remove remaining CSS classes and media queries
     text = re.sub(r'(@media.*?\{.*?\})', '', text, flags=re.DOTALL)
     text = re.sub(r'\.[\w-]+\s*\{[^{}]*\}', '', text, flags=re.DOTALL)
-    
     # Remove HTML tags
     text = re.sub(r'<.*?>', '', text)
-    
     # Remove any remaining CSS class names
     text = re.sub(r'\.[\w-]+', '', text)
-    
     # Remove multiple consecutive whitespace characters
     text = re.sub(r'\s+', ' ', text)
-    
     # Remove leading and trailing whitespace
     text = text.strip()
     
     return text
 
-def check_for_keywords(text):
-    """filter text based on inclusion & exclusion keywords"""
+def check_for_keywords(text:str):
+    """Filter text based on given inclusion & exclusion keywords."""
     
     text = text.lower()
     for keyword in INCLUSION_KEYWORDS:
@@ -56,12 +55,12 @@ def check_for_keywords(text):
             for ex_keyword in EXCLUSION_KEYWORDS:
                 if re.search(ex_keyword.lower(), text):
                     return False
-            return True
+            return True 
     
-    return False
+    return False 
 
-def get_url_base(url):
-    """get base name from a URL"""
+def get_url_base(url:str):
+    """Get base name from a URL."""
 
     # Parse the URL
     parsed_url = urlparse(url)
@@ -69,14 +68,13 @@ def get_url_base(url):
     path = parsed_url.path
     # Split the path into parts using '/' as delimiter
     path_parts = path.split('/')
-
     # Extract the filename from the last part of the path
     url_base = path_parts[-1]
 
     return url_base
 
-def filter_out_url(url):
-    """remove urls according to keyword filtering"""
+def filter_out_url(url:str):
+    """Remove urls according to keyword filtering"""
 
     url_base = get_url_base(url)
     return not check_for_keywords(url_base) # not False = True = remove url / not True = False = keep url
@@ -89,13 +87,16 @@ def get_file_basename (filename):
     basename = os.path.splitext(basename)[0]
     return basename
 
-def filter_out_file(basename):
-    """remove downloaded files according to keyword filtering"""
+def filter_out_file(basename:str):
+    """Remove downloaded files according to keyword filtering"""
+    return not check_for_keywords(basename) 
 
-    return not check_for_keywords(basename) # not False = True = remove file / not True = False = keep file
-
-def process_json_files(json_files: list):
-    """process downloaded json files containing crawled html content. Return cleaned and keyword relevant documents"""
+def process_json_files(json_files: List[str]):
+    """
+    Process downloaded json files containing crawled html content. 
+    Return cleaned and keyword relevant documents only.
+    Keyword matching is applied in the basename of the URL
+    """
 
     docs = []
     logging.info(f"Processing crawled html files...")
@@ -103,23 +104,22 @@ def process_json_files(json_files: list):
     for json_file in tqdm(json_files):
 
         with open(json_file, "r") as fp:
-
-            doc = json.load(fp)
-        
+            doc = json.load(fp)   
             url = doc["meta"]["url"]
-
             if filter_out_url(url):
                 continue
-
             text = clean_text(doc["content"])
-
             if text:
                 docs.append({"content": text, 'url': url})
 
     return docs
 
 def process_files(files: list):
-    """process other files downloaded while parsing html pages (.pdf, .docx, .txt)"""
+    """
+    Process other files downloaded while parsing html pages (.pdf, .docx, .txt).
+    Return cleaned and keyword relevant documents only.
+    Keyword checking is applied on the files' basenames.
+    """
 
     processed_docs = []
     logging.info(f"Processing downloaded files...")
@@ -134,8 +134,8 @@ def process_files(files: list):
             os.remove(file)
             continue
 
-        # run file classifier and file to haystack to doc converter function
-        docs = classify_and_convert_file(file)['documents']
+        # Run file classifier, extract text and convert to haystack Document object
+        docs = classify_and_convert_file_to_docs(file)['documents']
         for doc in docs:
 
             doc.content = clean_text(doc.content)
@@ -147,7 +147,7 @@ def process_files(files: list):
     return processed_docs
 
 def convert_crawled_data_to_docs():
-    """convert all downloaded data to haystack Document objects"""
+    """convert all fetched data to haystack Document objects"""
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
