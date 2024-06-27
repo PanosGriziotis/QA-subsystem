@@ -13,3 +13,5 @@ __pycache__
 
 *bz2
 /file-upload
+
+/dev/data/squad_translator/googlekey.json
