@@ -1,3 +1,6 @@
+> [!WARNING]
+> This repository is currently a work in progress and is not yet ready for production use. Features and functionalities are being actively developed and tested. Use at your own risk.
+
 # QA-subsystem
 
 This repository is part of a project aiming to develop a Greek Question-Answering (QA) system that integrates with a closed-domain virtual assistant (dialogue system). As a case study, a greek-speaking conversational agent for COVID-19 is selected.
