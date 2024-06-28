@@ -58,18 +58,18 @@ There are two query endpoints available for inferring answers to queries. These 
 
 ### Retrieval-Augmented Generation (RAG) Query
 
-- **Endpoint:** [http://127.0.0.1:8000/rag-query](http://127.0.0.1:8000/rag-query)
+- **Endpoint:** http://127.0.0.1:8000/rag-query
 - **Description:** This endpoint utilizes a Retrieval-Augmented Generator (RAG) pipeline. It employs a domain-adapted Dense Retriever based on sentence transformers for retrieving relevant documents. The Generator is based on [Meltemi-7B-Instruct-v1](https://huggingface.co/ilsp/Meltemi-7B-Instruct-v1), an instruct version of Meltemi-7B, the first Greek Large Language Model (LLM).
 
 ### Extractive Question Answering (QA) Query
 
-- **Endpoint:** [http://127.0.0.1:8000/extractive-query](http://127.0.0.1:8000/extractive-query)
+- **Endpoint:** http://127.0.0.1:8000/extractive-query
 - **Description:** This endpoint utilizes an Extractive QA pipeline based on the Retriever-Reader framework. The answer is extracted as a span from the top-ranked retrieved document. The same retrieval process is employed here. The Reader component is a fine-tuned [multilingual DeBERTaV3](https://huggingface.co/microsoft/mdeberta-v3-base) on SQuAD with further fine-tuning on COVID-QA-el_small, which is a translated small version of the COVID-QA dataset.
 
 ### Querying the application
 You can query the endpoint using curl to get the full result response.
 
-For example, to query the application with the question "Τι είναι ο covid-19;", run:
+For example, to query the application with the question "Τι είναι ο covid-19;" using the RAG query pipeline run:
 ```bash
 curl -X POST http://127.0.0.1:8000/rag-query \
      -H "Content-Type: application/json" \

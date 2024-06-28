@@ -1,4 +1,4 @@
-# File classifier for: .txt, .pdf, .docx files
+# File classifier for: .txt, .pdf, .docx, .json, .jsonl files
 from typing import Dict, List, Union
 from haystack.schema import Document
 from haystack.nodes import FileTypeClassifier, JsonConverter, TextConverter, PDFToTextConverter, DocxToTextConverter, PreProcessor
@@ -6,54 +6,13 @@ from haystack.pipelines import Pipeline
 import sys
 import os
 from haystack.nodes.base import BaseComponent
-from tqdm import tqdm 
 import logging
 from pathlib import Path
 
-file_type_classifier = FileTypeClassifier()
-text_converter = TextConverter(valid_languages=['el'])
-pdf_converter = PDFToTextConverter(valid_languages=['el'])
-docx_converter = DocxToTextConverter(valid_languages=['el'])
-json_converter =JsonConverter(valid_languages=["el"])
-preprocessor = PreProcessor(
-    clean_empty_lines=True,
-    clean_header_footer=True,
-    clean_whitespace=True,
-    split_by="word",
-    split_length=256,
-    split_respect_sentence_boundary=True,
-    language='el'
-)
-
-def classify_and_convert_file_to_docs (filepath:str, custom_preprocessor:PreProcessor=None) -> Dict[str, List[Document]]:
-    """
-    Run file classifier, route file to corresponding converter, and return haystack Document objects extracted from file
-    Return: Dict["documents": List[Document]]
-    """
-    # initialize default preprocessor if not given in function arguments
-    global preprocessor
-    if custom_preprocessor is not None:
-        preprocessor = custom_preprocessor
-
-    p = Pipeline()
-
-    # check for docx, pdf, txt extensions:
-    p.add_node(component=file_type_classifier, name="FileTypeClassifier", inputs=["File"])
-    p.add_node(component=text_converter, name="TextConverter", inputs=["FileTypeClassifier.output_1"])
-    p.add_node(component=pdf_converter, name="PdfConverter", inputs=["FileTypeClassifier.output_2"])
-    p.add_node(component=docx_converter, name="DocxConverter", inputs=["FileTypeClassifier.output_4"])
-    # split and convert to haystack document object
-    p.add_node(
-        component=preprocessor,
-        name="Preprocessor",
-        inputs=["TextConverter", "PdfConverter", "DocxConverter"],
-    )
-
-    return p.run(file_paths=[filepath])
 
 class JsonFileDetector (BaseComponent):
     """
-    Route json or jsonl input file in an Indexing Pipeline to JSONConverter or FileClassifier.
+    Detect and route json or jsonl input file in a Pipeline to JSONConverter
     Note: Only a single file path is allowed as input
     """
     outgoing_edges = 2
@@ -78,6 +37,43 @@ class JsonFileDetector (BaseComponent):
         self,
         **kwargs):
          return
+
+def init_file_to_doc_pipeline (custom_preprocessor:PreProcessor=None) -> Pipeline:
+    """Pipeline to route file to corresponding converter and preprocess the resulting docs"""
+
+    file_type_classifier = FileTypeClassifier()
+    text_converter = TextConverter(valid_languages=['el'])
+    pdf_converter = PDFToTextConverter(valid_languages=['el'])
+    docx_converter = DocxToTextConverter(valid_languages=['el'])
+    json_converter =JsonConverter(valid_languages=["el"])
+    # initialize default preprocessor if not given in function arguments
+    
+    if custom_preprocessor is not None:
+        preprocessor = custom_preprocessor
+    else:
+        preprocessor = PreProcessor(
+        clean_empty_lines=True,
+        clean_header_footer=True,
+        clean_whitespace=True,
+        split_by="word",
+        split_length=128,
+        split_respect_sentence_boundary=True,
+        language='el'
+    )
+
+    p = Pipeline()
+
+    # Classify doc according to extension and routes it to corresponding converter
+    p.add_node (component=JsonFileDetector(), name="JsonFileDetector", inputs=["File"])
+    p.add_node(component=json_converter, name="JsonConverter", inputs=["JsonFileDetector.output_1"])
+    p.add_node(component=file_type_classifier, name="FileTypeClassifier", inputs=["JsonFileDetector.output_2"])
+    p.add_node(component=text_converter, name="TextConverter", inputs=["FileTypeClassifier.output_1"])
+    p.add_node(component=pdf_converter, name="PdfConverter", inputs=["FileTypeClassifier.output_2"])
+    p.add_node(component=docx_converter, name="DocxConverter", inputs=["FileTypeClassifier.output_4"])
+    # Split, clean and convert document(s) to haystack Document object(s)
+    p.add_node(component=preprocessor, name="Preprocessor", inputs=["JsonConverter", "TextConverter", "PdfConverter", "DocxConverter"])
+
+    return p
 
 if __name__ == "__main__":
 

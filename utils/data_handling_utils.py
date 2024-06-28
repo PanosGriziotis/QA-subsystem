@@ -1,10 +1,14 @@
+from typing import List
+
 from haystack.nodes import TransformersTranslator
 import json 
-#import spacy
+
 from haystack.nodes import PreProcessor
 from haystack import Document
-from typing import List
+
 from tqdm import tqdm
+from langdetect import detect, DetectorFactory
+from langdetect.lang_detect_exception import LangDetectException
 
 from haystack import Document
 import random
@@ -152,6 +156,20 @@ def join_punctuation(seq, characters='.,;?!:'):
     yield current
     return ' '.join(seq)
 
+
+def is_english(text):
+    DetectorFactory.seed = 0
+    try:
+        return detect(text) == 'en'
+    except LangDetectException:
+        return False
+
+def remove_english_text(lines):
+    non_english_lines = []
+    for line in lines:
+        if not is_english(line):
+            non_english_lines.append(line)
+    return non_english_lines
 """
 def get_true_case (text):
     spacy_nlp = spacy.load("el_core_news_sm")
@@ -216,6 +234,10 @@ def get_query_doc_pairs_from_dpr_file (dpr_filename):
         query_doc_pairs.append({"question": question, "document": document})
     return query_doc_pairs
 
-if __name__ == "__main__":
 
-    post_process_generator_answers()
+def is_english(text):
+    DetectorFactory.seed = 0
+    try:
+        return detect(text) == 'en'
+    except LangDetectException:
+        return False

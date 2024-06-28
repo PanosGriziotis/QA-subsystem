@@ -3,7 +3,8 @@ from haystack.document_stores import ElasticsearchDocumentStore
 from evaluate import evaluate_retriever, evaluate_reader
 import json
 from haystack.nodes import FARMReader
-from document_store.initialize_document_store import document_store
+
+from datasets import load_dataset
 
 # ==================== LOAD & SAVE NPHO DATASET =========================================
 
@@ -17,36 +18,31 @@ npho_20 = npho["test"][1]
 # Save the extracted entries to JSON files
 datasets = {'10': npho_10, '20': npho_20}
 for key, dataset in datasets.items():
-    with open(f"test_npho_{key}.json", "w") as fp:
+    with open(f"./test_npho_{key}.json", "w") as fp:
         json.dump(dataset, fp, ensure_ascii=False, indent=6)
 
 #=========================== EVALUATE RETRIEVERS ======================================================
 
-max_seq_len = 256
 
 ds = ElasticsearchDocumentStore()
 
-emb_retriever = EmbeddingRetriever(document_store=ds, embedding_model="panosgriz/covid_el_embedding_retriever", max_seq_len=max_seq_len)
+emb_retriever = EmbeddingRetriever(document_store=ds, embedding_model="panosgriz/covid_el_embedding_retriever", max_seq_len=128)
 dpr = DensePassageRetriever(
     document_store=ds,  
     query_embedding_model="panosgriz/bert-base-greek-covideldpr-query_encoder",
     passage_embedding_model="panosgriz/bert-base-greek-covideldpr-ctx_encoder",
-    max_seq_len_passage=max_seq_len)
+    max_seq_len_passage=356)
 bm25 = BM25Retriever(document_store=ds)
 
 top_k_values = [x for x in range(1,51)]
 
-"""
-ranker = SentenceTransformersRanker(
-    model_name_or_path="amberoad/bert-multilingual-passage-reranking-msmarco"
-)
-"""
+
 results = {}
 for name, retriever in {"emb_retriever":emb_retriever, "dpr":dpr, "bm25":bm25}.items():
     reports = evaluate_retriever(retriever=retriever, document_store=ds, eval_filename="test_npho20.json", top_k_list=top_k_values)
     results[name] = reports
 
-with open ("system/evaluation/retrievers_eval_report_npho20.json", "w") as fp:
+with open ("./retrievers_eval_report_npho20.json", "w") as fp:
     json.dump (results, fp, ensure_ascii=False, indent=4)
 
 
@@ -76,7 +72,7 @@ for datafile in ["test_npho10.json", "test_npho20.json"]:
         json.dump(reports, fp, ensure_ascii=False, indent=4)
 
 """
-
+"""
 def evaluate_reader_on_top_k (model_name_or_path:str ="panosgriz/mdeberta-v3-base-squad2-covid-el_small",
                               top_k_values:list = [x for x in range(0,51)],
                               datafile:str = "eval_data/test_npho20.json"):
@@ -91,3 +87,4 @@ def evaluate_reader_on_top_k (model_name_or_path:str ="panosgriz/mdeberta-v3-bas
 
         with open(f"system/evaluation/report_mdeberta_small_reader_top_k_{os.path.basename(datafile).split('.')[0]}.json", "w") as fp:
             json.dump(reports, fp, ensure_ascii=False, indent=4)
+"""

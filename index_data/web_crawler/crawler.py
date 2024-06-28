@@ -13,11 +13,14 @@ from urllib.parse import urlparse
 import os
 import sys
 
+# Get the directory where the current script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+# Add the grandparent directory of SCRIPT_DIR (which should be my_project) to the Python path
+sys.path.append(os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 
 from haystack.nodes import Crawler
-from utils.file_type_classifier import classify_and_convert_file_to_docs
+from utils.file_type_classifier import init_file_to_doc_pipeline
+from utils.data_handling_utils import is_english
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,26 +62,6 @@ def check_for_keywords(text:str):
     
     return False 
 
-def get_url_base(url:str):
-    """Get base name from a URL."""
-
-    # Parse the URL
-    parsed_url = urlparse(url)
-    # Get the path component from the URL
-    path = parsed_url.path
-    # Split the path into parts using '/' as delimiter
-    path_parts = path.split('/')
-    # Extract the filename from the last part of the path
-    url_base = path_parts[-1]
-
-    return url_base
-
-def filter_out_url(url:str):
-    """Remove urls according to keyword filtering"""
-
-    url_base = get_url_base(url)
-    return not check_for_keywords(url_base) # not False = True = remove url / not True = False = keep url
-
 def get_file_suffix (filename):
     return os.path.splitext(filename)[1]
 
@@ -88,60 +71,48 @@ def get_file_basename (filename):
     return basename
 
 def filter_out_file(basename:str):
-    """Remove downloaded files according to keyword filtering"""
+    """Discard files according to keyword filtering"""
     return not check_for_keywords(basename) 
-
-def process_json_files(json_files: List[str]):
-    """
-    Process downloaded json files containing crawled html content. 
-    Return cleaned and keyword relevant documents only.
-    Keyword matching is applied in the basename of the URL
-    """
-
-    docs = []
-    logging.info(f"Processing crawled html files...")
-
-    for json_file in tqdm(json_files):
-
-        with open(json_file, "r") as fp:
-            doc = json.load(fp)   
-            url = doc["meta"]["url"]
-            if filter_out_url(url):
-                continue
-            text = clean_text(doc["content"])
-            if text:
-                docs.append({"content": text, 'url': url})
-
-    return docs
 
 def process_files(files: list):
     """
-    Process other files downloaded while parsing html pages (.pdf, .docx, .txt).
-    Return cleaned and keyword relevant documents only.
-    Keyword checking is applied on the files' basenames.
+    Process crawled file. Return cleaned and keyword relevant documents only.
+    Keyword checking is applied on the files' basename level.
     """
 
     processed_docs = []
     logging.info(f"Processing downloaded files...")
-
+    
+    file_basenames = []
     for file in tqdm(files):
 
         file_basename = get_file_basename(file)
-        if get_file_suffix(file) not in ['.txt', '.pdf', '.docx']:
+        if get_file_suffix(file) not in ['.jsonl', '.json', '.txt', '.pdf', '.docx']:
             continue
 
+        # check for inclusion & exclusion keywords on file's basename
         if filter_out_file(file_basename):
             os.remove(file)
             continue
 
-        # Run file classifier, extract text and convert to haystack Document object
-        docs = classify_and_convert_file_to_docs(file)['documents']
+        if file_basename in file_basenames:
+            os.remove(file)
+            continue
+        # Run file classifier, extract text and convert to haystack Document object        
+        file_converter_pipeline = init_file_to_doc_pipeline()
+        docs = file_converter_pipeline.run(file_paths=[file])["documents"]
+        
         for doc in docs:
-
+            # check for remaining english content
+            if is_english(doc.content):
+                continue
+            # post process documents
             doc.content = clean_text(doc.content)
+
             doc.meta = {'filename': file_basename}
             processed_docs.append(doc)
         
+        file_basenames.append(file_basename)
         os.remove(file)
 
     return processed_docs
@@ -151,12 +122,6 @@ def convert_crawled_data_to_docs():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
-    crawled_files_dir = os.path.join(script_dir, "crawled_files")
-
-    # Process all JSON files and then delete the "crawled_files" subdirectory
-    json_files = glob.glob(os.path.join(crawled_files_dir, "*.json"))
-    docs_from_json = process_json_files(json_files)
-    shutil.rmtree(crawled_files_dir)
     
     # Iterate through all files in running script directory
     crawled_files = []
@@ -167,13 +132,9 @@ def convert_crawled_data_to_docs():
             continue
         crawled_files.append(file_path)
 
-    # Extract text from remaining files in directory
     docs = process_files(files=crawled_files)
-
-    # Merge the two lists of documents
-    all_docs = docs_from_json + docs
     
-    return all_docs
+    return docs
 
 def run_web_crawler(crawler):
     """run crawler"""
@@ -193,35 +154,35 @@ if __name__ == '__main__':
         "https://eody.gov.gr/neos-koronaios-covid-19/",
         ],
         crawler_depth=2,
+        extract_hidden_text=False,
         filter_urls = [
             "https://eody.gov.gr/"
         ],
-        output_dir='crawled_files')
+        output_dir="./")
     
     moh_crawler = Crawler(urls = [
         "https://www.moh.gov.gr/articles/health/"
         ],
-        crawler_depth=1,
+        crawler_depth=2,
+        extract_hidden_text=False,
         filter_urls = [
             "https://www.moh.gov.gr/articles/health/"
         ],
-        output_dir='crawled_files')
+        output_dir="./")
 
     crawled_docs = []
 
     for crawler in [eody_crawler, moh_crawler]:
         docs = run_web_crawler(crawler)
         crawled_docs.append(docs)
-
-    file_path = os.path.join(args.save_dir, 'crawled_docs.json')
-    print(f"Saving to {file_path}")
+    
+    # save all processed crawled docs in a .json file
+    file_path = os.path.join(args.save_dir, 'crawled_docs.jsonl')
+    print(f"Saving crawled docs to {file_path}")
 
     crawled_docs = [item for sublist in crawled_docs for item in sublist]
 
     with open(file_path, "w") as fp:
-        if not crawled_docs:
-            print("Warning: crawled_docs is empty.")
-        
         for doc in tqdm(crawled_docs):
             if type(doc) is not dict:
                 doc = doc.to_dict()

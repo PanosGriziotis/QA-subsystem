@@ -32,8 +32,22 @@ def check_status():
     return True
 
 @app.post("/file-upload")
-def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool] = True):
-    """Upload a list of files to be indexed."""
+def upload_files(
+    files: List[UploadFile] = File(...),
+    # JSON Serialized string
+    keep_files: Optional[bool] = False,
+    recreate_index: Optional[bool] = False
+    ):
+    """
+    You can use this endpoint to upload a file for indexing
+    If you want to recreate default "document" index in document store
+    
+    Optional parameters in the request payload:
+
+    Pass the `keep_files=true` parameter if you want to keep files in the file_upload folder after being indexed
+    Pass the `recreate_index=true` parameter if you want to delete all indexed data and create document store index from scratch.
+    """
+
     file_paths = []
     
     for file_to_upload in files:
@@ -42,7 +56,10 @@ def upload_files(files: List[UploadFile] = File(...), keep_files: Optional[bool]
             fo.write(file_to_upload.file.read())
         file_paths.append(file_path)
         file_to_upload.file.close()
-
+    
+    if recreate_index:
+        ds = indexing_pipeline.get_node("DocumentStore")
+        ds.recreate_index = True
     result = indexing_pipeline.run(file_paths=file_paths)
 
     for document in result.get('documents', []):

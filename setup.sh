@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Get the absolute path of the current directory (QA-subsystem)
+# Get the absolute path of the current directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check if the virtual environment directory exists
