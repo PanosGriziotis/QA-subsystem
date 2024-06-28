@@ -19,6 +19,7 @@ Before you begin, make sure you have Python and Docker installed on your system.
 
 - Clone this repository.
 - Open a terminal and run the setup.sh script. This script will create a virtual environment called venv in your working directory, where all required dependencies will be installed. Then, the Elasticsearch document store Docker container will start running. Finally, the REST API will start running in the terminal:
+
     ```bash
     chmod +x setup.sh && ./setup.sh
     ```
@@ -28,6 +29,11 @@ Before you begin, make sure you have Python and Docker installed on your system.
   ```
   You should get `true` as a response.
 - Stop the REST API server by pressing `ctrl + c` in terminal.
+- Once the `venv` is activated and the Elasticsearch container is running, you can start the REST API at any time with:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
 ## Indexing
 To populate the application with data about covid-19, run the following script:
