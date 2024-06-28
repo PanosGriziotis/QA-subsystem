@@ -16,7 +16,7 @@ from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser
 from haystack.nodes.base import BaseComponent
 
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
-from utils.data_handler_utils import post_process_generator_answers, remove_second_answers_occurrence
+from utils.data_handling_utils import post_process_generator_answers, remove_second_answers_occurrence
 
 if DOCUMENT_STORE is None:
     raise ValueError("the imported document_store is None. Please make sure that the Elasticsearch service is properly launched")
@@ -41,7 +41,7 @@ class Generator(BaseComponent):
 
         super().__init__()
 
-    def run(self, query, documents, top_k:int=1, max_new_tokens:int=100, temperature:float = 0.4, top_p:float = 0.5):
+    def run(self, query, documents, max_new_tokens:int=100, temperature:float = 0.4, top_p:float = 0.5):
         """"""
         generation_kwargs={
                             'max_new_tokens': max_new_tokens,
@@ -52,7 +52,7 @@ class Generator(BaseComponent):
         
         generator = PromptNode(model_name_or_path = self.model_name,
                                default_prompt_template = self.prompt_template,
-                               top_k= top_k,
+                               top_k= 1,
                                model_kwargs = {
             'model': self.model,
             'tokenizer': self.tokenizer,
