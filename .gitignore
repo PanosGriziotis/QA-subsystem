@@ -1,5 +1,7 @@
 
-/dev
+/dev/evaluation/evaluate_generator.py
+/dev/evaluation/test_npho_10.json
+/dev/evaluation/test_npho_20.json
 /mlruns
 
 .gitignore
@@ -7,11 +9,9 @@ __pycache__
 /venv
 
 
+
 /z_del_1
 /z_del_2
 /z_del_3
 
 *bz2
-/file-upload
-
-/dev/data/squad_translator/googlekey.json

@@ -8,12 +8,33 @@ from typing import List, Optional
 from haystack import Pipeline
 from haystack.document_stores import InMemoryDocumentStore, ElasticsearchDocumentStore
 from haystack.nodes import PreProcessor
-from haystack.nodes import FARMReader
+from haystack.nodes import FARMReader, EmbeddingRetriever, DensePassageRetriever, BM25Retriever
 import logging
+from datasets import load_dataset
 
 logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logging.INFO)
 logging.getLogger("haystack").setLevel(logging.INFO)
 
+def fetch_eval_dataset():
+    for file in ["test_npho_20.json", "test_npho_10.json"]:
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
+
+        if not os.path.isfile(file_path):
+            # Load the annotated test dataset
+            npho = load_dataset("panosgriz/npho-covid-SQuAD-el")
+
+            # Extract specific entries from the dataset 
+            npho_10 = npho["test"][0]
+            npho_20 = npho["test"][1]
+
+            # Save the extracted entries to JSON files
+            datasets = {'10': npho_10, '20': npho_20}
+            for key, dataset in datasets.items():
+                with open(f"./test_npho_{key}.json", "w") as fp:
+                    json.dump(dataset, fp, ensure_ascii=False, indent=6)
+            break  # If we create the files once, we don't need to check further
+        else:
+            print(f"{file} already exists.")
 
 def index_eval_labels(document_store, eval_filename: str):
     """
@@ -64,12 +85,21 @@ def get_eval_labels_and_paths(document_store, tempdir) -> Tuple[List[dict], List
     return evaluation_set_labels, file_paths
 
 
-def evaluate_retriever(retriever, document_store, eval_filename: str, top_k: Optional[int] = None, top_k_list: Optional[List[int]] = None, **kwargs) -> Dict[int, dict]:
+def evaluate_retriever(
+        retriever:Union[BM25Retriever, EmbeddingRetriever, DensePassageRetriever],
+        document_store: ElasticsearchDocumentStore,
+        eval_filename: str,
+        top_k: Optional[int] = None,
+        top_k_list: Optional[List[int]] = None) -> Dict[int, dict]:
+    
     """
-    Evaluate a retriever on a SQuAD format evaluation dataset. If a top_k_list is provided, the evaluation is iterative for each top_k value, generating one evaluation report for each value.
+    Evaluate a retriever on a SQuAD format evaluation dataset. 
+    If a top_k_list is provided, the evaluation is iterative for each top_k value, generating one evaluation report for each value.
     """
+
     index_eval_labels(document_store, eval_filename)
-    document_store.update_embeddings(retriever= retriever,index="eval_docs")
+    if isinstance(retriever, (EmbeddingRetriever, DensePassageRetriever)):
+        document_store.update_embeddings(retriever= retriever,index="eval_docs")
 
     if top_k_list is not None:
         reports = {}
@@ -82,7 +112,11 @@ def evaluate_retriever(retriever, document_store, eval_filename: str, top_k: Opt
         report = retriever.eval(label_index=document_store.label_index, doc_index=document_store.index, top_k=top_k, document_store=document_store)
         return report
 
-def evaluate_reader(reader:FARMReader, eval_filename: str, top_k: Optional[int] = None, top_k_list: Optional[List[int]] = None) -> Dict[int, dict]:
+def evaluate_reader(
+        reader:FARMReader,
+        eval_filename: str,
+        top_k: Optional[int] = None,
+        top_k_list: Optional[List[int]] = None) -> Dict[int, dict]:
     """
     Evaluate reader on a SQuAD format evaluation dataset.
     """

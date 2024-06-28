@@ -74,10 +74,3 @@ def init_file_to_doc_pipeline (custom_preprocessor:PreProcessor=None) -> Pipelin
     p.add_node(component=preprocessor, name="Preprocessor", inputs=["JsonConverter", "TextConverter", "PdfConverter", "DocxConverter"])
 
     return p
-
-if __name__ == "__main__":
-
-    file = sys.argv[1]
-    result = JsonFileDetector().run([file])
-    print (result)
-    
