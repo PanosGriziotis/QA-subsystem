@@ -154,7 +154,7 @@ if __name__ == '__main__':
         "https://eody.gov.gr/neos-koronaios-covid-19/",
         ],
         crawler_depth=2,
-        extract_hidden_text=False,
+        extract_hidden_text=True,
         filter_urls = [
             "https://eody.gov.gr/"
         ],
@@ -164,7 +164,7 @@ if __name__ == '__main__':
         "https://www.moh.gov.gr/articles/health/"
         ],
         crawler_depth=2,
-        extract_hidden_text=False,
+        extract_hidden_text=True,
         filter_urls = [
             "https://www.moh.gov.gr/articles/health/"
         ],

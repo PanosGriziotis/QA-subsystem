@@ -14,34 +14,52 @@ The application includes:
 
 You can find more information in the [Haystack documentation](https://docs.haystack.deepset.ai/v1.25/docs/intro).
 
-## Getting started
-Before you begin, make sure you have Python and Docker installed on your system. Driver Version: 470.161.03   CUDA Version: 11.4     
+### Steps to Set Up
 
-- Clone this repository.
-- Open a terminal and run the setup.sh script. This script will create a virtual environment called venv in your working directory, where all required dependencies will be installed. Then, the Elasticsearch document store Docker container will start running. Finally, the REST API will start running in the terminal:
+Before you begin, ensure you have Python and Docker installed on your system. Also, make sure you have the following versions:
+
+- **Driver Version:** 470.161.03
+- **CUDA Version:** 11.4
+
+1. **Clone this repository.**
+
+2. **Run the setup script:**
+
+    Open a terminal and run the `setup.sh` script. This script will create a virtual environment called `venv` in your working directory, where all required dependencies will be installed. Then, the Elasticsearch document store Docker container will start running.
 
     ```bash
     chmod +x setup.sh && ./setup.sh
     ```
-- Verify that the REST API is ready by running on a new terminal
-  ```bash
-  curl http://localhost:8000/ready
-  ```
-  You should get `true` as a response.
-- Stop the REST API server by pressing `ctrl + c` in terminal.
-- Once the `venv` is activated and the Elasticsearch container is running, you can start the REST API at any time with:
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
+3. **Start the REST API server:**
+
+    ```bash
+    python3 main.py --launch
+    ```
+
+4. **Verify the REST API is ready:**
+
+    Open a new terminal and run:
+
+    ```bash
+    curl http://localhost:8000/ready
+    ```
+
+    You should get `true` as a response.
+
+5. **Stop the REST API server:**
+
+    Press `ctrl + c` in the terminal running the server.
 
 ## Indexing
-To populate the application with data about covid-19, run the following script:
+
+To populate the application with data about COVID-19, run the following:
+
 ```bash
-python ingest_dat_to_doc_store.py
+python3 main.py --ingest_data
 ```
 
-You can also index your own text files using the `file-upload` endpoint. 
+You can also index your own text files using the file-upload endpoint:
 
 ```bash
 curl -X 'POST' \
@@ -50,7 +68,8 @@ curl -X 'POST' \
 -H 'Content-Type: multipart/form-data' \
 -F 'files=@YOUR-TEXT-FILE'
 ```
-Note: Acceptible file formats are .txt, .json, .jsonl, .pdf, .docx
+
+Note: Acceptable file formats are .txt, .json, .jsonl, .pdf, .docx.
 
 ## Querying
 
@@ -67,14 +86,28 @@ There are two query endpoints available for inferring answers to queries. These 
 - **Description:** This endpoint utilizes an Extractive QA pipeline based on the Retriever-Reader framework. The answer is extracted as a span from the top-ranked retrieved document. The Reader component is a fine-tuned [multilingual DeBERTaV3](https://huggingface.co/microsoft/mdeberta-v3-base) on SQuAD with further fine-tuning on COVID-QA-el_small, which is a translated small version of the COVID-QA dataset.
 
 ### Querying the application
+
 You can query the endpoint using curl to get the full result response.
 
-For example, to query the application with the question "Τι είναι ο covid-19;" using the RAG query pipeline run:
+For example, to query the application with a query using the RAG query pipeline, run:
+
 ```bash
 curl -X POST http://127.0.0.1:8000/rag-query \
      -H "Content-Type: application/json" \
-     -d '{"query": "Πώς μεταδίδεται η covid-19;", "params": {"Retriever": {"top_k": 10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}}}'
+     -d '{
+            "query": "Πώς μεταδίδεται η covid-19;", 
+            "params": {
+                "Retriever": {"top_k": 10}, 
+                "Ranker": {"top_k": 10}, 
+                "Generator": {"max_new_tokens": 100}
+            }
+        }'
 ```
 
-You should get a the full response of the pipeline containing the answer, the invocation context, retrieved documents, etc.
+You should get the full response of the pipeline containing the answer, the invocation context, retrieved documents, etc.
 
+To test the app and ask a query to get a direct answer, you can use the test/ask_question.py script. Use the --ex flag to use the extractive QA endpoint and the --rag flag to use the RAG endpoint for yielding a direct answer.
+
+```bash
+python3 test/ask_question.py --ex --query "Πώς μεταδίδεται ο covid-19;"
+```

@@ -9,8 +9,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 import logging
 
 from haystack.nodes import EmbeddingRetriever, PreProcessor
-from haystack import Pipeline
-
+from transformers import AutoTokenizer
 from utils.file_type_classifier import init_file_to_doc_pipeline
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
 
@@ -20,13 +19,16 @@ logger = logging.getLogger(__name__)
 if DOCUMENT_STORE is None:
     raise ValueError("the imported document_store is None. Please make sure that the Elasticsearch service is properly launched")
 
-retriever = EmbeddingRetriever(embedding_model="panosgriz/covid_el_paraphrase-multilingual-MiniLM-L12-v2", document_store=DOCUMENT_STORE, max_seq_len=128)
+embedding_model = "panosgriz/covid_el_paraphrase-multilingual-MiniLM-L12-v2"
+retriever = EmbeddingRetriever(embedding_model=embedding_model, document_store=DOCUMENT_STORE, max_seq_len=128)
+tokenizer = AutoTokenizer.from_pretrained(embedding_model)
 
 preprocessor = PreProcessor(
     clean_empty_lines=True,
     split_by = "token",
-    split_length=200,
+    split_length=128,
     split_respect_sentence_boundary=True,
+    tokenizer=tokenizer,
     language= 'el'
     )
 
