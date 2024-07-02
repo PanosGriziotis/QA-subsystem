@@ -26,6 +26,7 @@ def initialize_document_store():
         username="",
         password="",
         index="document",
+        embedding_dim=384,
         duplicate_documents="overwrite"
     )
 

@@ -5,13 +5,6 @@ import seaborn as sns
 from datasets import load_dataset
 import requests
 
-def create_directories():
-    """
-    Create the necessary directories if they do not exist.
-    """
-    os.makedirs("datasets", exist_ok=True)
-    os.makedirs("reports", exist_ok=True)
-
 def check_file_exists(file_path):
     return os.path.isfile(file_path)
 
