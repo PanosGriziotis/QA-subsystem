@@ -11,8 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 
 from haystack.pipelines import Pipeline
-from haystack.nodes import  EmbeddingRetriever
-from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser
+from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser, EmbeddingRetriever, SentenceTransformersRanker
 from haystack.nodes.base import BaseComponent
 
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
@@ -89,18 +88,19 @@ def load_model (model_name):
     
     return model
 
-retriever = EmbeddingRetriever(embedding_model="panosgriz/covid_el_embedding_retriever", document_store=DOCUMENT_STORE, top_k=5, max_seq_len=128)
+retriever = EmbeddingRetriever(embedding_model="panosgriz/covid_el_paraphrase-multilingual-MiniLM-L12-v2", document_store=DOCUMENT_STORE)
+ranker = SentenceTransformersRanker(model_name_or_path="amberoad/bert-multilingual-passage-reranking-msmarco")
 generator = Generator()
 
 p = Pipeline()
 p.add_node(component=retriever, name ="Retriever", inputs=["Query"])
-p.add_node(component=generator, name="Generator", inputs=["Retriever"])
+p.add_node(component=ranker, name="Ranker", inputs=["Retriever"])
+p.add_node(component=generator, name="Generator", inputs=["Ranker"])
 rag_pipeline = p
 
 if __name__ == "__main__":
 
     # ============TEST PIPELINE================
-    result = rag_pipeline.run(query="Πως μεταδίδεται ο covid;", params={"Retriever": {"top_k":10}, "Generator": {"max_new_tokens": 100, "top_k": 1}})
-    
+    result = rag_pipeline.run(query="Πως μεταδίδεται ο covid;", params={"Retriever": {"top_k":10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}})
     print (result)
 

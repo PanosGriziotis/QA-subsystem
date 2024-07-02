@@ -42,8 +42,7 @@ def test_rag_query_endpoint():
     
     request_body = {
         "query": query,
-        "params": {"Retriever": {"top_k": 1}, "Generator": {"max_new_tokens": 50}}
-        }
+        "params": {"Retriever": {"top_k":10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}}}
     
     r = requests.post(url="http://127.0.0.1:8000/rag-query", json=request_body)
     json_response = r.json()
@@ -68,7 +67,7 @@ def test_extractive_query_endpoint():
     
     request_body = {
         "query": query,
-        "params": {"Retriever": {"top_k": 5}, "Reader": {"top_k": 1}},
+        "params": {"Retriever": {"top_k": 10}, "Ranker": {"top_k": 10},  "Reader": {"top_k": 1}},
         }
     r = requests.post(url="http://127.0.0.1:8000/extractive-query", json=request_body)
 
