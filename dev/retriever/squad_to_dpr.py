@@ -67,7 +67,7 @@ from itertools import islice
 from tqdm.auto import tqdm
 
 try:
-    from elasticsearch import Elasticsearch
+    fromelasticsearch  import Elasticsearch
 except (ImportError, ModuleNotFoundError) as ie:
     from haystack.utils.import_utils import _optional_component_not_installed
 

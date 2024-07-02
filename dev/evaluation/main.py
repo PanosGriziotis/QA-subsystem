@@ -3,38 +3,23 @@ from tqdm import tqdm
 import os
 import sys
 import tempfile
+import json
 from pathlib import Path
 from typing import List, Optional
 from haystack import Pipeline
 from haystack.document_stores import InMemoryDocumentStore, ElasticsearchDocumentStore
 from haystack.nodes import PreProcessor
-from haystack.nodes import FARMReader, EmbeddingRetriever, DensePassageRetriever, BM25Retriever
+from haystack.nodes import FARMReader, EmbeddingRetriever, DensePassageRetriever, BM25Retriever, SentenceTransformersRanker
+from transformers import AutoTokenizer
+
+import requests
 import logging
 from datasets import load_dataset
 
 logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logging.INFO)
 logging.getLogger("haystack").setLevel(logging.INFO)
 
-def fetch_eval_dataset():
-    for file in ["test_npho_20.json", "test_npho_10.json"]:
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
-
-        if not os.path.isfile(file_path):
-            # Load the annotated test dataset
-            npho = load_dataset("panosgriz/npho-covid-SQuAD-el")
-
-            # Extract specific entries from the dataset 
-            npho_10 = npho["test"][0]
-            npho_20 = npho["test"][1]
-
-            # Save the extracted entries to JSON files
-            datasets = {'10': npho_10, '20': npho_20}
-            for key, dataset in datasets.items():
-                with open(f"./test_npho_{key}.json", "w") as fp:
-                    json.dump(dataset, fp, ensure_ascii=False, indent=6)
-            break  # If we create the files once, we don't need to check further
-        else:
-            print(f"{file} already exists.")
+tokenizer = AutoTokenizer.from_pretrained("nlpaueb/bert-base-greek-uncased-v1")
 
 def index_eval_labels(document_store, eval_filename: str):
     """
@@ -45,14 +30,17 @@ def index_eval_labels(document_store, eval_filename: str):
     """
     index = 'eval_docs'
     label_index = 'label_index'
-    document_store.delete_documents (index=index)
-    document_store.delete_labels (index=label_index)
+    document_store.delete_index(index=index)
+    document_store.delete_index (index=label_index)
 
+    
     label_preprocessor = PreProcessor(
-        split_length=256,
+        split_by="word",
+        split_length=128,
         split_respect_sentence_boundary=False,
         clean_empty_lines=False,
         clean_whitespace=False,
+        language='el'
     )
  
     document_store.add_eval_data(
@@ -135,7 +123,45 @@ def evaluate_reader(
     else:
         return reader.eval_on_file(data_dir, eval_filename)
 
+def evaluate_retriever_ranker_pipeline(
+        retriever:Union[BM25Retriever, EmbeddingRetriever, DensePassageRetriever],
+        ranker:SentenceTransformersRanker,
+        document_store: ElasticsearchDocumentStore,
+        eval_filename: str,
+        top_k: Optional[int] = None,
+        top_k_list: Optional[List[int]] = None) -> Dict[int, dict]:
 
+    index_eval_labels(document_store, eval_filename)
+    if isinstance(retriever, (EmbeddingRetriever, DensePassageRetriever)):
+        document_store.update_embeddings(retriever=retriever,index="eval_docs")
+    
+    
+    p = Pipeline()
+    p.add_node(retriever, name="Retriever", inputs=["Query"])
+    p.add_node(ranker, name="Ranker", inputs=["Retriever"])
+    
+    #documents = document_store.get_all_documents(index="eval_docs", return_embedding=True)
+    labels = document_store.get_all_labels_aggregated(index="label_index")
+
+    if top_k_list is not None:
+        reports = {}
+        for top_k in tqdm(top_k_list):
+
+            report = p.eval(
+                labels=labels,
+                params={"top_k": top_k}
+                )
+            
+            reports[top_k] = report.calculate_metrics()
+        return reports
+
+    report = p.eval(labels=labels,
+            add_isolated_node_eval=True
+            )
+    return report
+
+
+    
 def run_experiment(exp_name: str, eval_filename: str, pipeline_path: str, run_name: str, query_params={"Retriever": {"top_k": 10}, "Reader": {"top_k": 5}}):
     """
     Run an experiment with the given parameters.

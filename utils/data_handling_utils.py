@@ -6,7 +6,6 @@ import json
 from haystack.nodes import PreProcessor
 from haystack import Document
 
-from tqdm import tqdm
 from langdetect import detect, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
 

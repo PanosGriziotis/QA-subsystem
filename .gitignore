@@ -1,10 +1,13 @@
 
 /dev/evaluation/evaluate_generator.py
 /dev/evaluation/test_npho_10.json
-/dev/evaluation/test_npho_20.json
-/mlruns
-
+/dev/evaluation/datasets
+/dev/retriever/adapted_retriever
+/dev/retriever/*.json
+/dev/retriever/mlruns
+/dev/retriever/checkpoints/model
 .gitignore
+
 __pycache__
 /venv
 

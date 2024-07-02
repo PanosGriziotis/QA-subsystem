@@ -4,6 +4,7 @@ import random
 from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
 from unidecode import unidecode
+from datasets import load_dataset
 
 class GPL_data:
 
@@ -19,12 +20,9 @@ class GPL_data:
         Simultaneously, it ensures that the response to the associated question remains contained within the truncated passage
         """
 
-        # Tokenize according to the given model's tokenizer
-        
+        # Tokenize according to the given model's tokenizer 
         passage_tokens = self.tokenizer.tokenize (passage)
         answer_tokens = self.tokenizer.tokenize (answer)
-
-
 
         # Calculate total tokens to keep while Reserving tokens for [CLS], [SEP], and space
         tokens_to_keep = self.max_seq_len - len(answer_tokens) - 3 
@@ -116,30 +114,9 @@ class GPL_data:
 
             for qd_pair in tqdm(data):
 
-                tokenized_doc = self.tokenizer.tokenize (qd_pair["document"])[:max_seq_len]
+                tokenized_doc = self.tokenizer.tokenize (qd_pair["document"])[:self.max_seq_len]
                 truncated_data.append ({"question": qd_pair["question"], "document": self.tokenizer.convert_tokens_to_string(tokenized_doc)})
 
             return truncated_data
-
-if __name__ == "__main__":
-    
-    model_name_or_path = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
-    max_seq_len = SentenceTransformer(model_name_or_path).max_seq_length
-    tokenizer =  AutoTokenizer.from_pretrained("nlpaueb/bert-base-greek-uncased-v1")
-    input_squad_file = "/home/pgriziotis/thesis/QA-subsystem/data/deepset_covid_qa/dataset/COVID-QA-el_small.json"
-    input_json_file = "/home/pgriziotis/thesis/QA-subsystem/data/who/who_pairs.json"
-
-    data_extractor = GPL_data(tokenizer, max_seq_len)
-    squad_query_doc_pairs = data_extractor.get_query_doc_pairs_from_squad_file (input_squad_file)
-    who_query_doc_pairs = data_extractor.get_query_doc_pairs_from_file (input_json_file)
-
-    qd_pairs = squad_query_doc_pairs + who_query_doc_pairs
-    random.shuffle(qd_pairs)
-
-    with open ("gpl_data.json", "w") as fp:
-        json.dump (qd_pairs, fp, ensure_ascii=False)
-
-
-
 
 
