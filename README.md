@@ -59,12 +59,12 @@ There are two query endpoints available for inferring answers to queries. These 
 ### Retrieval-Augmented Generation (RAG) Query
 
 - **Endpoint:** http://127.0.0.1:8000/rag-query
-- **Description:** This endpoint utilizes a Retrieval-Augmented Generator (RAG) pipeline. It employs a domain-adapted Dense Retriever based on sentence transformers for retrieving relevant documents. The Generator is based on [Meltemi-7B-Instruct-v1](https://huggingface.co/ilsp/Meltemi-7B-Instruct-v1), an instruct version of Meltemi-7B, the first Greek Large Language Model (LLM).
+- **Description:** This endpoint utilizes a Retrieval-Augmented Generator (RAG) pipeline. It employs a domain-adapted Dense Retriever based on bi-encoder sentence transformer model for retrieving relevant documents followed by a cross-encoder Ranker component. The Generator is based on [Meltemi-7B-Instruct-v1](https://huggingface.co/ilsp/Meltemi-7B-Instruct-v1), an instruct version of Meltemi-7B, the first Greek Large Language Model (LLM).
 
 ### Extractive Question Answering (QA) Query
 
 - **Endpoint:** http://127.0.0.1:8000/extractive-query
-- **Description:** This endpoint utilizes an Extractive QA pipeline based on the Retriever-Reader framework. The answer is extracted as a span from the top-ranked retrieved document. The same retrieval process is employed here. The Reader component is a fine-tuned [multilingual DeBERTaV3](https://huggingface.co/microsoft/mdeberta-v3-base) on SQuAD with further fine-tuning on COVID-QA-el_small, which is a translated small version of the COVID-QA dataset.
+- **Description:** This endpoint utilizes an Extractive QA pipeline based on the Retriever-Reader framework. The answer is extracted as a span from the top-ranked retrieved document. The Reader component is a fine-tuned [multilingual DeBERTaV3](https://huggingface.co/microsoft/mdeberta-v3-base) on SQuAD with further fine-tuning on COVID-QA-el_small, which is a translated small version of the COVID-QA dataset.
 
 ### Querying the application
 You can query the endpoint using curl to get the full result response.
@@ -73,7 +73,7 @@ For example, to query the application with the question "Τι είναι ο covi
 ```bash
 curl -X POST http://127.0.0.1:8000/rag-query \
      -H "Content-Type: application/json" \
-     -d '{"query": "Πώς μεταδίδεται η covid-19;", "params": {"Retriever": {"top_k": 5}, "Generator": {"max_new_tokens": 100}}}'
+     -d '{"query": "Πώς μεταδίδεται η covid-19;", "params": {"Retriever": {"top_k": 10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}}}'
 ```
 
 You should get a the full response of the pipeline containing the answer, the invocation context, retrieved documents, etc.
