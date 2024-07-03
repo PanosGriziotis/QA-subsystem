@@ -10,7 +10,7 @@ The repository contains a simple Haystack application with a REST API for indexi
 The application includes:
 
 - An Elasticsearch container
-- A Question-Asnwering (QA) REST API application. This app integrates the Haystack logic and uses pipelines for indexing unstructured text in Elasticsearch document search and querying.
+- A Question-Asnwering (QA) REST API application. This app integrates the Haystack logic and uses pipelines for indexing unstructured text in Elasticsearch document store and querying.
 
 You can find more information in the [Haystack documentation](https://docs.haystack.deepset.ai/v1.25/docs/intro).
 
