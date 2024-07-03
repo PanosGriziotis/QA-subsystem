@@ -169,57 +169,7 @@ def remove_english_text(lines):
         if not is_english(line):
             non_english_lines.append(line)
     return non_english_lines
-"""
-def get_true_case (text):
-    spacy_nlp = spacy.load("el_core_news_sm")
-    words = [word.text for word in spacy_nlp(text)]
-    ents = [ent.text for ent in spacy_nlp(text).ents]
-    capitalized_words = [w.capitalize() if w in ents else w for w in words]
-    true_cased_words = [w.lower() if w.isupper() else w for w in capitalized_words]
-    return ' '.join (join_punctuation(true_cased_words))
-"""
 
-def fit_passage_in_max_len (context, answer, max_seq_len_passage):
-    """This function helps trimming a given passage in order to not exceed the maximum sequence length of a model while ensuring to also include the respective answer"""
-
-    # Step 1: tokenize both context and answer with model's tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("nlpaueb/bert-base-greek-uncased-v1")
-    context_tokens = tokenizer.tokenize (context)
-    answer_tokens = tokenizer.tokenize (answer)
-
-    # Step 2: Calculate total tokens to keep
-    tokens_to_keep = max_seq_len_passage - len(answer_tokens) - 3  # Reserve tokens for [CLS], [SEP], and space
-
-    # Step 3: Validate if the given context is indeed exceeding the given max_seq_len else trimm the context
-    if len(context_tokens) <= tokens_to_keep:
-
-
-        return tokenizer.convert_tokens_to_string (answer_tokens), tokenizer.convert_tokens_to_string (context_tokens)
-    else:
-        try:
-            # Find the token number in which the answer starts
-            answer_start = context_tokens.index(answer_tokens[0])
-
-            # Calculate context window
-            context_start = max(0, answer_start - (tokens_to_keep // 2))
-            context_end = min(len(context_tokens), answer_start + len(answer_tokens) + (tokens_to_keep // 2))
-
-            # Adjust context window if needed
-            if context_end - context_start < tokens_to_keep:
-                if context_end == len(context_tokens):
-                    context_start = max(0, context_end - tokens_to_keep)
-                else:
-                    context_end = min(len(context_tokens), context_start + tokens_to_keep)
-
-            # Trim context, while including the answer
-            trimmed_context_tokens = context_tokens[context_start:context_end]
-            trimmed_context = tokenizer.convert_tokens_to_string(trimmed_context_tokens)
-            answer_new = tokenizer.convert_tokens_to_string (answer_tokens)
-            
-            return  answer_new, trimmed_context
-        
-        except ValueError:
-            print ("Answer not in context")
 
 def get_query_doc_pairs_from_dpr_file (dpr_filename):
     

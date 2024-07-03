@@ -10,16 +10,13 @@ The repository contains a simple Haystack application with a REST API for indexi
 The application includes:
 
 - An Elasticsearch container
-- A REST API launcher built on FastAPI. This API integrates the Haystack logic and uses pipelines for indexing and querying.
+- A Question-Asnwering (QA) REST API application. This app integrates the Haystack logic and uses pipelines for indexing unstructured text in Elasticsearch document search and querying.
 
 You can find more information in the [Haystack documentation](https://docs.haystack.deepset.ai/v1.25/docs/intro).
 
 ### Steps to Set Up
 
-Before you begin, ensure you have Python and Docker installed on your system. Also, make sure you have the following versions:
-
-- **Driver Version:** 470.161.03
-- **CUDA Version:** 11.4
+Before you begin, ensure you have Python and Docker installed on your system. 
 
 1. **Clone this repository.**
 
@@ -47,9 +44,7 @@ Before you begin, ensure you have Python and Docker installed on your system. Al
 
     You should get `true` as a response.
 
-5. **Stop the REST API server:**
-
-    Press `ctrl + c` in the terminal running the server.
+You can press `ctrl + c` in the terminal running the server at any time to stop the QA application.
 
 ## Indexing
 
@@ -87,9 +82,13 @@ There are two query endpoints available for inferring answers to queries. These 
 
 ### Querying the application
 
-You can query the endpoint using curl to get the full result response.
+If you want to test the app and get a direct answer to a query of your choic, you can run the test/ask_question.py script. Include the --ex flag to use the extractive QA endpoint or the --rag flag to use the RAG endpoint for yielding the answer:
 
-For example, to query the application with a query using the RAG query pipeline, run:
+```bash
+python3 test/ask_question.py --ex --query "Πώς μεταδίδεται ο covid-19;"
+```
+
+You can query the endpoint using curl to get the full result response, including the answer, retrieved documents, confidence scores, and more. You can also configure the pipeline's parameters as you wish. For example, to query the application using the RAG query pipeline with specific parameters run:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/rag-query \
@@ -98,16 +97,8 @@ curl -X POST http://127.0.0.1:8000/rag-query \
             "query": "Πώς μεταδίδεται η covid-19;", 
             "params": {
                 "Retriever": {"top_k": 10}, 
-                "Ranker": {"top_k": 10}, 
+                "Ranker": {"top_k": 5}, 
                 "Generator": {"max_new_tokens": 100}
             }
         }'
-```
-
-You should get the full response of the pipeline containing the answer, the invocation context, retrieved documents, etc.
-
-To test the app and ask a query to get a direct answer, you can use the test/ask_question.py script. Use the --ex flag to use the extractive QA endpoint and the --rag flag to use the RAG endpoint for yielding a direct answer.
-
-```bash
-python3 test/ask_question.py --ex --query "Πώς μεταδίδεται ο covid-19;"
 ```
