@@ -1,5 +1,3 @@
-
-
 import os
 import sys
 
@@ -28,9 +26,9 @@ preprocessor = PreProcessor(
     split_by = "token",
     split_length=128,
     split_respect_sentence_boundary=True,
-    tokenizer=tokenizer,
-    language= 'el'
+    tokenizer=tokenizer
     )
+
 
 #DOCUMENT_STORE.recreate_index = True
 indexing_pipeline = init_file_to_doc_pipeline(custom_preprocessor=preprocessor)

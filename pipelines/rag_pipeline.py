@@ -11,15 +11,20 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 
 from haystack.pipelines import Pipeline
-from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser, EmbeddingRetriever, SentenceTransformersRanker
+from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser, EmbeddingRetriever
 from haystack.nodes.base import BaseComponent
 
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
+from dev.ranker import SentenceTransformersRanker
 from utils.data_handling_utils import post_process_generator_answers, remove_second_answers_occurrence
 
 if DOCUMENT_STORE is None:
     raise ValueError("the imported document_store is None. Please make sure that the Elasticsearch service is properly launched")
 
+import logging
+
+logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logging.DEBUG)
+logging.getLogger("haystack").setLevel(logging.DEBUG)
 
 class Generator(BaseComponent):
     """"""
@@ -88,7 +93,7 @@ def load_model (model_name):
     
     return model
 
-retriever = EmbeddingRetriever(embedding_model="panosgriz/covid_el_paraphrase-multilingual-MiniLM-L12-v2", document_store=DOCUMENT_STORE)
+retriever = EmbeddingRetriever(embedding_model="panosgriz/covid_el_paraphrase-multilingual-MiniLM-L12-v2", document_store=DOCUMENT_STORE, max_seq_len=128)
 ranker = SentenceTransformersRanker(model_name_or_path="amberoad/bert-multilingual-passage-reranking-msmarco")
 generator = Generator()
 
