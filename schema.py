@@ -5,11 +5,10 @@ import pandas as pd
 from pydantic import BaseModel, Field, Extra
 from haystack.schema import Answer, Document
 
-# Define a base model configuration to use custom JSON encoders and allow arbitrary types
 class CustomConfig:
     arbitrary_types_allowed = True
     json_encoders = {
-        # if any of the documents contains an embedding as an ndarray the latter needs to be converted to list of float
+        # if any of the documents contains an embedding field as an ndarray the latter needs to be converted to list of float
         np.ndarray: lambda x: x.tolist(),
         pd.DataFrame: lambda x: [x.columns.tolist()] + x.values.tolist(),
     }

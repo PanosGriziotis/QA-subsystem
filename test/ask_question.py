@@ -16,7 +16,7 @@ def main():
         "query": query,
         "params": {
             "Retriever": {"top_k": 10},
-            "Ranker": {"top_k": 10},
+            "Ranker": {"top_k": 10}
         }
     }
 

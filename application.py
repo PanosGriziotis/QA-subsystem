@@ -19,10 +19,7 @@ from pipelines.indexing_pipeline import indexing_pipeline
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 app = FastAPI(title="QA-subsystem API")
-
-# Create the file upload directory if it doesn't exist
 FILE_UPLOAD_PATH = os.getenv("FILE_UPLOAD_PATH", str((Path(__file__).parent.parent / "file-upload").absolute()))
 Path(FILE_UPLOAD_PATH).mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +31,6 @@ def check_status():
 @app.post("/file-upload")
 def upload_files(
     files: List[UploadFile] = File(...),
-    # JSON Serialized string
     keep_files: Optional[bool] = False,
     recreate_index: Optional[bool] = False
     ):
