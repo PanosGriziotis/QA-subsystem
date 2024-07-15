@@ -77,7 +77,7 @@ There are two query endpoints available for inferring answers to queries. These 
 If you want to test the app and get a direct answer to a query of your choic, you can run the test/ask_question.py script. Include the --ex flag to use the extractive QA endpoint or the --rag flag to use the RAG endpoint for yielding the answer:
 
 ```bash
-python3 test/ask_question.py --ex --query "Πώς μεταδίδεται ο covid-19;"
+python3 test/ask_question.py --rag --query "Πώς μεταδίδεται ο covid-19;"
 ```
 
 You can query the endpoint using curl to get the full result response, including the answer, retrieved documents, confidence scores, and more. You can also configure the pipeline's parameters as you wish. For example, to query the application using the RAG query pipeline with specific parameters run:
