@@ -83,7 +83,7 @@ python3 test/ask_question.py --ex --query "Πώς μεταδίδεται ο covi
 You can query the endpoint using curl to get the full result response, including the answer, retrieved documents, confidence scores, and more. You can also configure the pipeline's parameters as you wish. For example, to query the application using the RAG query pipeline with specific parameters run:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/rag-query \
+curl -X POST http://localhost:8000/rag-query \
      -H "Content-Type: application/json" \
      -d '{
             "query": "Πώς μεταδίδεται η covid-19;", 
