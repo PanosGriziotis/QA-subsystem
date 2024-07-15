@@ -11,11 +11,4 @@
 __pycache__
 /venv
 
-Dockerfile
-docker-compose.yml
-
-/z_del_1
-/z_del_2
-/z_del_3
-
 *bz2
