@@ -10,7 +10,7 @@ The repository contains a simple Haystack application with a REST API for indexi
 The application includes:
 
 - An Elasticsearch container
-- A Question-Asnwering (QA) REST API application. This app integrates the Haystack logic and uses pipelines for indexing unstructured text in Elasticsearch document store and querying.
+- A Question-Asnwering (QA) REST API container: This container integrates the Haystack logic and uses pipelines for indexing unstructured text data in Elasticsearch document store and querying.
 
 You can find more information in the [Haystack documentation](https://docs.haystack.deepset.ai/v1.25/docs/intro).
 
@@ -20,21 +20,15 @@ Before you begin, ensure you have Python and Docker installed on your system.
 
 1. **Clone this repository.**
 
-2. **Run the setup script:**
+2. **Run the services**
 
-    Open a terminal and run the `setup.sh` script. This script will create a virtual environment called `venv` in your working directory, where all required dependencies will be installed. Then, the Elasticsearch document store Docker container will start running.
-
-    ```bash
-    chmod +x setup.sh && ./setup.sh
-    ```
-
-3. **Start the REST API server:**
+    Spin up the multi-container application (Elasticsearch + REST API) using Docker Compose:
 
     ```bash
-    python3 main.py --launch
+    docker-compose up -d
     ```
 
-4. **Verify the REST API is ready:**
+4. **Verify that the haystack service is ready:**
 
     Open a new terminal and run:
 
@@ -44,14 +38,14 @@ Before you begin, ensure you have Python and Docker installed on your system.
 
     You should get `true` as a response.
 
-You can press `ctrl + c` in the terminal running the server at any time to stop the QA application.
+    Note: The haystack service requires some time to download and load the models after it starts.
 
 ## Indexing
 
 To populate the application with data about COVID-19, run the following:
 
 ```bash
-python3 main.py --ingest_data
+python3 src/external_data/ingest_data_to_doc_store.py
 ```
 
 You can also index your own text files using the file-upload endpoint:
