@@ -21,7 +21,7 @@ def main():
     }
 
     endpoint = "rag-query" if args.rag else "extractive-query" if args.ex else None
-    url = f"http://127.0.0.1:8000/{endpoint}"
+    url = f"http://localhost:8000/{endpoint}"
 
     try:
         r = requests.post(url=url, json=request_body)

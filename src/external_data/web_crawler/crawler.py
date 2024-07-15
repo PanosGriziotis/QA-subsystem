@@ -15,7 +15,7 @@ import sys
 
 # Get the directory where the current script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Add the grandparent directory of SCRIPT_DIR (which should be my_project) to the Python path
+# Add the grandparent directory of SCRIPT_DIR to the Python path
 sys.path.append(os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 
 from haystack.nodes import Crawler

@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="QA-subsystem API")
-FILE_UPLOAD_PATH = os.getenv("FILE_UPLOAD_PATH", str((Path(__file__).parent.parent / "file-upload").absolute()))
+FILE_UPLOAD_PATH = os.getenv("FILE_UPLOAD_PATH", str((Path(__file__).parent / "file-upload").absolute()))
 Path(FILE_UPLOAD_PATH).mkdir(parents=True, exist_ok=True)
 
 @app.get("/ready")
@@ -56,6 +56,7 @@ def upload_files(
     if recreate_index:
         ds = indexing_pipeline.get_node("DocumentStore")
         ds.recreate_index = True
+        
     result = indexing_pipeline.run(file_paths=file_paths)
 
     for document in result.get('documents', []):
@@ -100,7 +101,6 @@ def ask_rag_pipeline(request: QueryRequest):
         result["documents"] = []
     if not "answers" in result:
         result["answers"] = []
-
 
     logger.info(
         json.dumps({"request": request, "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str)

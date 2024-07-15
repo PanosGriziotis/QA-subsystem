@@ -14,7 +14,8 @@ logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logg
 logging.getLogger("haystack").setLevel(logging.DEBUG)
 
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
-from dev.ranker import SentenceTransformersRanker
+from pipelines.ranker import SentenceTransformersRanker
+
 
 if DOCUMENT_STORE is None:
     raise ValueError("the imported document_store is None. Please make sure that the Elasticsearch service is properly launched")

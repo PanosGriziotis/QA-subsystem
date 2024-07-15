@@ -15,7 +15,7 @@ from haystack.nodes import  PromptNode, PromptTemplate, AnswerParser, EmbeddingR
 from haystack.nodes.base import BaseComponent
 
 from document_store.initialize_document_store import document_store as DOCUMENT_STORE
-from dev.ranker import SentenceTransformersRanker
+from pipelines.ranker import SentenceTransformersRanker
 from utils.data_handling_utils import post_process_generator_answers, remove_second_answers_occurrence
 
 if DOCUMENT_STORE is None:

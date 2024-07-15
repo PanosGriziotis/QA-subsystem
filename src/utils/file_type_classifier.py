@@ -3,10 +3,7 @@ from typing import Dict, List, Union
 from haystack.schema import Document
 from haystack.nodes import FileTypeClassifier, JsonConverter, TextConverter, PDFToTextConverter, DocxToTextConverter, PreProcessor
 from haystack.pipelines import Pipeline
-import sys
-import os
 from haystack.nodes.base import BaseComponent
-import logging
 from pathlib import Path
 
 
@@ -55,10 +52,9 @@ def init_file_to_doc_pipeline (custom_preprocessor:PreProcessor=None) -> Pipelin
         clean_empty_lines=True,
         clean_header_footer=True,
         clean_whitespace=True,
-        split_by="word",
+        split_by="token",
         split_length=128,
-        split_respect_sentence_boundary=True,
-        language='el'
+        split_respect_sentence_boundary=True
     )
 
     p = Pipeline()

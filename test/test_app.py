@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
 def test_status_endpoint():
 
-    r = requests.get(url="http://127.0.0.1:8000/ready")    
+    r = requests.get(url="http://localhost:8000/ready")    
     assert r.status_code == 200
     assert r.text == "true"
     logging.info("Status endpoint test passed.")
@@ -23,7 +23,7 @@ def test_file_upload_endpoint():
         logging.info(f"Indexing content in {file} to document store")
         
         with open(file, "rb") as f:
-           r = requests.post(url="http://127.0.0.1:8000/file-upload", files={"files": f})
+           r = requests.post(url="http://localhost:8000/file-upload", files={"files": f})
            json_response = r.json()
            assert len(json_response["documents"]) > 0
 
@@ -44,7 +44,7 @@ def test_rag_query_endpoint():
         "query": query,
         "params": {"Retriever": {"top_k":10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}}}
     
-    r = requests.post(url="http://127.0.0.1:8000/rag-query", json=request_body)
+    r = requests.post(url="http://localhost:8000/rag-query", json=request_body)
     json_response = r.json()
 
     end_time = time.time()
@@ -69,7 +69,7 @@ def test_extractive_query_endpoint():
         "query": query,
         "params": {"Retriever": {"top_k": 10}, "Ranker": {"top_k": 10},  "Reader": {"top_k": 1}},
         }
-    r = requests.post(url="http://127.0.0.1:8000/extractive-query", json=request_body)
+    r = requests.post(url="http://localhost:8000/extractive-query", json=request_body)
 
     end_time = time.time()
 
