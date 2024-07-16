@@ -36,21 +36,4 @@ def initialize_document_store():
 if not check_elasticsearch():    
     print ("Elasticsearch document store is not running. Please start the elasticsearch docker container")
     
-    """
-    launch_es()
-
-    print("Checking for active Elasticsearch service...")
-    retries = 10
-    while retries > 0:
-        if check_elasticsearch():
-            print("Elasticsearch is up and running.")
-            break
-        else:
-            print("Waiting for Elasticsearch to start...")
-            retries -= 1
-            time.sleep(5)
-    else:
-        print("Elasticsearch did not start in time.")
-        exit(1)
-"""
 document_store = initialize_document_store()

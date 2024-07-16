@@ -16,6 +16,8 @@ from pipelines.rag_pipeline import rag_pipeline
 from pipelines.extractive_qa_pipeline import extractive_qa_pipeline
 from pipelines.indexing_pipeline import indexing_pipeline
 
+from utils.metrics import add_relevancy_scores_to_results
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,8 +33,7 @@ def check_status():
 @app.post("/file-upload")
 def upload_files(
     files: List[UploadFile] = File(...),
-    keep_files: Optional[bool] = False,
-    recreate_index: Optional[bool] = False
+    keep_files: Optional[bool] = False
     ):
     """
     You can use this endpoint to upload a file for indexing
@@ -52,10 +53,6 @@ def upload_files(
             fo.write(file_to_upload.file.read())
         file_paths.append(file_path)
         file_to_upload.file.close()
-    
-    if recreate_index:
-        ds = indexing_pipeline.get_node("DocumentStore")
-        ds.recreate_index = True
         
     result = indexing_pipeline.run(file_paths=file_paths)
 
@@ -79,11 +76,14 @@ async def ask_retriever_reader_pipeline(request: QueryRequest):
     # Ensure answers and documents exist, even if they're empty lists
     if "documents" not in result:
         result["documents"] = []
-    if "answers" not in result:
+    if not "answers" in result:
         result["answers"] = []
 
+    # Compute how relevant answers are to query and add relevancy scores in results. Sort top_k answers based on these scores in descending orders.
+    result = add_relevancy_scores_to_results(results=result)
+
     logging.info(
-        json.dumps({"request": request.dict(), "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str)
+        json.dumps({"request": request.dict(), "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str, ensure_ascii=False)
     )
     return result
 
@@ -101,8 +101,11 @@ def ask_rag_pipeline(request: QueryRequest):
         result["documents"] = []
     if not "answers" in result:
         result["answers"] = []
-
+    
+    # Compute how relevant answers are to query and add relevancy scores in results.
+    result = add_relevancy_scores_to_results(results=result)
+    
     logger.info(
-        json.dumps({"request": request, "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str)
+        json.dumps({"request": request, "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str, ensure_ascii=False)
     )
     return result    
