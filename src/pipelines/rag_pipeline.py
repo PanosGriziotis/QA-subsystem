@@ -23,8 +23,8 @@ if DOCUMENT_STORE is None:
 
 import logging
 
-logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logging.DEBUG)
-logging.getLogger("haystack").setLevel(logging.DEBUG)
+logging.basicConfig(format="%(levelname)s - %(name)s -  %(message)s", level=logging.WARNING)
+logging.getLogger("haystack").setLevel(logging.INFO)
 
 class Generator(BaseComponent):
     """"""
@@ -102,10 +102,3 @@ p.add_node(component=retriever, name ="Retriever", inputs=["Query"])
 p.add_node(component=ranker, name="Ranker", inputs=["Retriever"])
 p.add_node(component=generator, name="Generator", inputs=["Ranker"])
 rag_pipeline = p
-
-if __name__ == "__main__":
-
-    # ============TEST PIPELINE================
-    result = rag_pipeline.run(query="Πως μεταδίδεται ο covid;", params={"Retriever": {"top_k":10}, "Ranker": {"top_k":10}, "Generator": {"max_new_tokens": 100}})
-    print (result)
-
